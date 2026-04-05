@@ -1,0 +1,41 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 0,
+    "passes": 0,
+    "failures": 1,
+    "pending": 0,
+    "duration": 953,
+    "start": "2026-04-05T17:09:24.712Z",
+    "end": "2026-04-05T17:09:25.665Z"
+  },
+  "passes": [],
+  "failures": [
+    {
+      "fullTitle": "Unified Privacy Bridges Suite \"before all\" hook in \"Unified Privacy Bridges Suite\"",
+      "title": "\"before all\" hook in \"Unified Privacy Bridges Suite\"",
+      "duration": 950,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Cannot read properties of undefined (reading 'address')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'address')\n    at Context.<anonymous> (contracts/test/UnifiedPrivacyBridges.test.cjs:182:40)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+      }
+    }
+  ],
+  "pending": [],
+  "tests": [
+    {
+      "fullTitle": "Unified Privacy Bridges Suite \"before all\" hook in \"Unified Privacy Bridges Suite\"",
+      "title": "\"before all\" hook in \"Unified Privacy Bridges Suite\"",
+      "duration": 950,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Cannot read properties of undefined (reading 'address')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'address')\n    at Context.<anonymous> (contracts/test/UnifiedPrivacyBridges.test.cjs:182:40)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+      }
+    }
+  ],
+  "contractAddresses": []
+}

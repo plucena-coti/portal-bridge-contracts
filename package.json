@@ -1,0 +1,28 @@
+{
+  "name": "portal-bridge-contracts",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "TEST_REPORT=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
+    "test:private-erc20": "ONLY_PRIVATE_ERC20=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
+    "generate:test-report": "TEST_REPORT=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
+    "generate:test-report:erc20": "TEST_REPORT=1 ONLY_PRIVATE_ERC20=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
+    "coverage:testnet": "TEST_REPORT=1 npm run test && node contracts/test/helpers/generate-coverage.cjs",
+    "coverage-report": "node scripts/generate-coverage-report.cjs"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@openzeppelin/contracts": "^4.9.6",
+    "@coti-io/coti-contracts": "^1.1.0",
+    "@coti-io/coti-ethers": "^1.0.5",
+    "@coti-io/coti-sdk-typescript": "^1.0.6",
+    "chai": "^4.5.0",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.16.0",
+    "hardhat": "^2.22.17",
+    "solidity-coverage": "^0.8.17"
+  }
+}
