@@ -13,36 +13,14 @@
 const hre  = require("hardhat");
 const fs   = require("fs");
 const path = require("path");
-const https = require("https");
 
 const CHAIN_IDS = {
     cotiTestnet: 7082400,
     cotiMainnet: 2632500,
 };
 
-// Remote source of truth — raw content of config.ts from the portal repo
-const CONFIG_REMOTE_URL =
-    "https://raw.githubusercontent.com/cotitech-io/coti-privacy-portal/main/src/contracts/config.ts";
-
-// Local copy saved alongside this script
+// Local config.ts alongside this script
 const CONFIG_PATH = path.resolve(__dirname, "config.ts");
-
-/**
- * Fetch a URL and return the response body as a string.
- */
-function fetchText(url) {
-    return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
-            if (res.statusCode !== 200) {
-                return reject(new Error(`HTTP ${res.statusCode} fetching ${url}`));
-            }
-            const chunks = [];
-            res.on("data", (c) => chunks.push(c));
-            res.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-            res.on("error", reject);
-        }).on("error", reject);
-    });
-}
 
 /**
  * Parse the given chainId block from a config.ts string and return a plain address map.
@@ -80,13 +58,6 @@ async function main() {
 
     console.log("Redeploying with account:", deployer.address);
     console.log("Network:", networkName, `(chainId: ${chainId})`);
-
-    // ── Fetch remote config.ts and save locally ────────────────────────────
-    console.log(`\n--- Fetching config.ts from remote ---`);
-    console.log(`  ${CONFIG_REMOTE_URL}`);
-    const remoteContent = await fetchText(CONFIG_REMOTE_URL);
-    fs.writeFileSync(CONFIG_PATH, remoteContent, "utf8");
-    console.log(`✅ Saved to ${CONFIG_PATH}`);
 
     // ── Read current addresses from local config.ts ────────────────────────
     console.log("\n--- Reading current addresses from config.ts ---");
