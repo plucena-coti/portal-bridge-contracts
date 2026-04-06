@@ -2,27 +2,6 @@
 
 This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges for the COTI Testnet, and automatically update the frontend configuration to point at the new addresses.
 
-## Before You Start — Sync Branches
-
-Before deploying, make sure `main` is in sync with `staging, please adpt it to testnet or main` so the deployment goes out on top of the latest stable code.
-
-```bash
-# 1. Fetch latest remote state
-git fetch origin
-
-# 2. Check if main is behind staging
-git log origin/main..origin/staging --oneline
-
-# 3. If there are commits listed, merge staging into main
-git checkout main
-git merge origin/staging
-git push origin main
-
-
-```
-
-> If `git log` returns nothing, `main` is already up to date — skip steps 3 and 4.
-
 ---
 
 ## Prerequisites
@@ -138,3 +117,6 @@ git add src/contracts/config.ts
 git commit -m "Update contract addresses after redeployment"
 git push origin dev
 ```
+
+
+copy /deploy/privacy_bridge/config.ts to privacy portal branch (main/staging/testnet) and commit there the file /src/contracts/config.ts

@@ -1,41 +1,1395 @@
 {
   "stats": {
-    "suites": 1,
-    "tests": 0,
-    "passes": 0,
-    "failures": 1,
+    "suites": 8,
+    "tests": 40,
+    "passes": 38,
+    "failures": 4,
     "pending": 0,
-    "duration": 953,
-    "start": "2026-04-05T17:09:24.712Z",
-    "end": "2026-04-05T17:09:25.665Z"
+    "duration": 1052759,
+    "start": "2026-04-05T17:19:51.815Z",
+    "end": "2026-04-05T17:37:24.574Z"
   },
-  "passes": [],
+  "passes": [
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 22: PrivateCOTI: mint(address,uint256) should mint tokens and emit Transfer",
+      "title": "Test 22: PrivateCOTI: mint(address,uint256) should mint tokens and emit Transfer",
+      "duration": 16055,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "10"
+          ],
+          "txHash": "0x34d2f3c07930d2df5d9e00882eea6c13a35fd953bb1686de801ebe53d11d58ee",
+          "description": "mint(owner, 10) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 23: PrivateCOTI: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "title": "Test 23: PrivateCOTI: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "duration": 10689,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 24: PrivateCOTI: burn(uint256) should burn tokens and emit Transfer",
+      "title": "Test 24: PrivateCOTI: burn(uint256) should burn tokens and emit Transfer",
+      "duration": 19327,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.burn(uint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0x6479ef5fec0b4203163bf685448c95fca5a2c3fb9b36e854f2bc8e494251b4b6",
+          "description": "burn(1) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 25: PrivateCOTI: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "title": "Test 25: PrivateCOTI: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "duration": 14233,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transfer(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x88423cf42257dde92673e8402d259631586d514b7e643092de3cca409f08ecbf",
+          "description": "transfer(user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 26: PrivateCOTI: approve(address,uint256) should set allowance and emit Approval",
+      "title": "Test 26: PrivateCOTI: approve(address,uint256) should set allowance and emit Approval",
+      "duration": 18131,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0xd9f9a859b779120cd883596226714d5e96043044a1c5e98486abf74461a1237f",
+          "description": "approve(user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 27: PrivateCOTI: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "title": "Test 27: PrivateCOTI: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "duration": 17339,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferFrom(address,address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x5ad29bd6fa2a992b66d7964bd9641e05f385b8d0515c1736b6bb3ff54c76d3fe",
+          "description": "transferFrom(owner→user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 28: PrivateCOTI (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "title": "Test 28: PrivateCOTI (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "duration": 14579,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.setAccountEncryptionAddress",
+          "args": [
+            "<mock_address>"
+          ],
+          "txHash": "0x9abd79565dbb2df816d402784ce0e4112f2b5aa303a8d5d5cc046760c3de3e1e",
+          "description": "setAccountEncryptionAddress on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 29: PrivateCOTI (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "title": "Test 29: PrivateCOTI (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "duration": 24545,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferAndCall",
+          "args": [
+            "0x7d8E3cAbc1D7969E7BB950200b736481CF30C929",
+            "0.1",
+            "0x68656c..."
+          ],
+          "txHash": "0x8d4f048652b724eced76a089ac85b7f9b71dd3aa1ee6e8533a8ff1b2d4bebb72",
+          "description": "transferAndCall to MockTokenReceiver on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 30: PrivateCOTI (extend): transfer(itUint256,address) with encrypted payload",
+      "title": "Test 30: PrivateCOTI (extend): transfer(itUint256,address) with encrypted payload",
+      "duration": 15167,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transfer(to, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0xd06c22a97163ac5ee4f783208f26c22990695cf2bddbc731a66d33d8f0bed5eb",
+          "description": "transfer(itUint256) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 31: PrivateCOTI (extend): approve(address,itUint256) and allowance checks",
+      "title": "Test 31: PrivateCOTI (extend): approve(address,itUint256) and allowance checks",
+      "duration": 30137,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(spender, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0xb66850fe4042f2cea82c25f30775dfd8bcb4f00e392f23279316117d77882ecd",
+          "description": "approve(itUint256) on PrivateCOTI"
+        },
+        {
+          "method": "PrivateCOTI.reencryptAllowance",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "true"
+          ],
+          "txHash": "0x63517a18f8116b40b5e3d6cc4f6516a0dfc112348fea8f0878a1dda0c1782782",
+          "description": "reencryptAllowance on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 32: PrivateCOTI (extend): transferFrom(address,address,itUint256)",
+      "title": "Test 32: PrivateCOTI (extend): transferFrom(address,address,itUint256)",
+      "duration": 29376,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "1"
+          ],
+          "txHash": "0xb879be7acafc211d0daf49116565f69dc911d146e87a18edd41b931148a8951e",
+          "description": "Approve owner as spender for PrivateCOTI encrypted transferFrom"
+        },
+        {
+          "method": "PrivateCOTI.transferFrom(from, to, itAmount)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x32af55f0bfb644589ce21328786f78d70ec7586df3e93eebc83b524bbe18e19b",
+          "description": "transferFrom(itUint256) on PrivateCOTI"
+        },
+        {
+          "method": "PrivateWrappedEther.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xa3bcfa26ace601b943de1f76295e2c070eda0a13713716f8a18a5563c9cfa75a",
+          "description": "Grant MINTER_ROLE to owner for PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 34: PrivateWrappedEther: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "title": "Test 34: PrivateWrappedEther: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "duration": 27073,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 35: PrivateWrappedEther: burn(uint256) should burn tokens and emit Transfer",
+      "title": "Test 35: PrivateWrappedEther: burn(uint256) should burn tokens and emit Transfer",
+      "duration": 25547,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.burn(uint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0x8e7c216da0cc75ea551f4274b33318d6a188a289f78e89d333f6cc5304b561a1",
+          "description": "burn(1) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 36: PrivateWrappedEther: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "title": "Test 36: PrivateWrappedEther: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "duration": 19777,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transfer(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x03f5ef0b8bb23559f62a8ff1d604a9957914c9945b57af4f5305f7bfb5b10ac3",
+          "description": "transfer(user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 37: PrivateWrappedEther: approve(address,uint256) should set allowance and emit Approval",
+      "title": "Test 37: PrivateWrappedEther: approve(address,uint256) should set allowance and emit Approval",
+      "duration": 18538,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x0a7a25dbcc471f2504e5081445b8c3a0e37339d30fc8cc8c81c2a6c6797fd85b",
+          "description": "approve(user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 38: PrivateWrappedEther: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "title": "Test 38: PrivateWrappedEther: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "duration": 15253,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transferFrom(address,address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0xb1b61c5e78ef6bfde70f22309a5741378de957cbafab43bfcb8776919bbd5f79",
+          "description": "transferFrom(owner→user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 39: PrivateWrappedEther (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "title": "Test 39: PrivateWrappedEther (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "duration": 14604,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.setAccountEncryptionAddress",
+          "args": [
+            "<mock_address>"
+          ],
+          "txHash": "0x5a04c7b1f51edf72bc70f1384eee606afa9ecb6928af2c4c8128ee779d790217",
+          "description": "setAccountEncryptionAddress on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 40: PrivateWrappedEther (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "title": "Test 40: PrivateWrappedEther (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "duration": 24733,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transferAndCall",
+          "args": [
+            "0x445F6adcbb4741B8D4b3B98699597209d1966d4d",
+            "0.1",
+            "0x68656c..."
+          ],
+          "txHash": "0x54dcf84ebbd5fce31c9aaae3851c4e1538816ce9c7168f7ab68ca1f1c1c8d9e0",
+          "description": "transferAndCall to MockTokenReceiver on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 41: PrivateWrappedEther (extend): transfer(itUint256,address) with encrypted payload",
+      "title": "Test 41: PrivateWrappedEther (extend): transfer(itUint256,address) with encrypted payload",
+      "duration": 14600,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transfer(to, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x96ead120d56a6acbf26524e6e8571380474f31ccba3b8c0d609c9688556e1af4",
+          "description": "transfer(itUint256) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 42: PrivateWrappedEther (extend): approve(address,itUint256) and allowance checks",
+      "title": "Test 42: PrivateWrappedEther (extend): approve(address,itUint256) and allowance checks",
+      "duration": 30086,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(spender, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x697c05c058580dd6e54b33376c0fa8682ea10a38d95b94d378bb9ab8ba57dc87",
+          "description": "approve(itUint256) on PrivateWrappedEther"
+        },
+        {
+          "method": "PrivateWrappedEther.reencryptAllowance",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "true"
+          ],
+          "txHash": "0x2637b0f307903afce30f68d58f9341f12cb64276f11a882684117cd87a8b747a",
+          "description": "reencryptAllowance on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 43: PrivateWrappedEther (extend): transferFrom(address,address,itUint256)",
+      "title": "Test 43: PrivateWrappedEther (extend): transferFrom(address,address,itUint256)",
+      "duration": 30247,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "1"
+          ],
+          "txHash": "0xe7940e3a37f64664cee3b02d6f426251943f66e51949cdf8705a8ef78e8e27e2",
+          "description": "Approve owner as spender for PrivateWrappedEther encrypted transferFrom"
+        },
+        {
+          "method": "PrivateWrappedEther.transferFrom(from, to, itAmount)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x7c294c4140e6c30ce4bfd3643f71e0419d6e5185c7402d1a9cd49eb95f525272",
+          "description": "transferFrom(itUint256) on PrivateWrappedEther"
+        },
+        {
+          "method": "PrivateCOTI.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xCCB025f8a7D53ef479fB8c6c7B9e7a34eb29d821"
+          ],
+          "txHash": "0xa5b0944a86bf9e86a7d6f89e95045c1099bf99f291b317e5df135fe19be2a3c6",
+          "description": "Grant MINTER_ROLE to bridge (coverage suite)"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 45: coverage: getBridgeBalance explicit check",
+      "title": "Test 45: coverage: getBridgeBalance explicit check",
+      "duration": 1467,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 46: coverage: receive() fallback with direct transfer",
+      "title": "Test 46: coverage: receive() fallback with direct transfer",
+      "duration": 18696,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "receive()",
+          "args": [
+            "0.01"
+          ],
+          "txHash": "0xef5c369d34cc2debaabae38466af9cf9482c2c4907049060e41b37ca6d7a825f",
+          "description": "Direct COTI transfer to bridge (receive fallback)"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 47: coverage: onTokenReceived direct call should revert InvalidAddress",
+      "title": "Test 47: coverage: onTokenReceived direct call should revert InvalidAddress",
+      "duration": 938,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xd72392c47c740fccc237e78019700b253ecd7641729e8287fb4f39260056f85f",
+          "description": "Grant MINTER_ROLE to owner for coverage tests"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 48: coverage: name() returns token name",
+      "title": "Test 48: coverage: name() returns token name",
+      "duration": 760,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 49: coverage: symbol() returns token symbol",
+      "title": "Test 49: coverage: symbol() returns token symbol",
+      "duration": 707,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 50: coverage: decimals() returns 18",
+      "title": "Test 50: coverage: decimals() returns 18",
+      "duration": 822,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 51: coverage: totalSupply() returns 0 (not implemented)",
+      "title": "Test 51: coverage: totalSupply() returns 0 (not implemented)",
+      "duration": 967,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 52: coverage: balanceOf(address) returns ciphertext after mint",
+      "title": "Test 52: coverage: balanceOf(address) returns ciphertext after mint",
+      "duration": 17532,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "5"
+          ],
+          "txHash": "0xc50808686c4d59a66759ea8d8f8b1e58e3bb0b69b9c754db1b8435f0d651da3b",
+          "description": "Mint for balance query test"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 53: coverage: balanceOf() returns garbled balance",
+      "title": "Test 53: coverage: balanceOf() returns garbled balance",
+      "duration": 2156,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 54: coverage: allowance(address,address) returns Allowance struct",
+      "title": "Test 54: coverage: allowance(address,address) returns Allowance struct",
+      "duration": 18305,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "1"
+          ],
+          "txHash": "0xcdb7e52121b68fcabba7f18456c6ec957c79a02763d26e42e302c6ba35de0872",
+          "description": "Approve for allowance query test"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 55: coverage: allowance(address,bool) returns garbled allowance",
+      "title": "Test 55: coverage: allowance(address,bool) returns garbled allowance",
+      "duration": 2026,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 56: coverage: mint(address,itUint256) encrypted mint",
+      "title": "Test 56: coverage: mint(address,itUint256) encrypted mint",
+      "duration": 16220,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,itUint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "3"
+          ],
+          "txHash": "0x7c607b913eab9f4e43324f2f0143a968572c1339e438993aa2c11fe48cc73328",
+          "description": "Encrypted mint"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 57: coverage: burn(itUint256) encrypted burn",
+      "title": "Test 57: coverage: burn(itUint256) encrypted burn",
+      "duration": 15698,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.burn(itUint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0xa397bfd477db700a74f6d29a16b491acf12a72c8300d3d5c3226ee441de598b9",
+          "description": "Encrypted burn"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 58: coverage: supportsInterface(bytes4) checks ERC165",
+      "title": "Test 58: coverage: supportsInterface(bytes4) checks ERC165",
+      "duration": 831,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 59: coverage: transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "title": "Test 59: coverage: transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "duration": 24405,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferAndCall(address,itUint256,bytes)",
+          "args": [
+            "0xd4C2Ad56Ba105Ce4c7Ff3e6b27AC4ed32E4B6D98",
+            "0.5"
+          ],
+          "txHash": "0x0f61e44c59f91086a592452af25bb8f08e3562a7b7d3bb81a810c4f99055a874",
+          "description": "Encrypted transferAndCall"
+        },
+        {
+          "method": "PrivateWrappedEther.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xf51932b7df6dcc67b998efc3ce86ba4e03f597dd46e8bea07a04f0c909fff227",
+          "description": "Grant MINTER_ROLE to owner for PrivateWrappedEther coverage tests"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 60: coverage: PrivateWrappedEther mint(address,itUint256) encrypted mint",
+      "title": "Test 60: coverage: PrivateWrappedEther mint(address,itUint256) encrypted mint",
+      "duration": 14850,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,itUint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "3"
+          ],
+          "txHash": "0x3cd3bb85a1169938d6e01c24ccb001ecc9d1a7abdd9d11c7a8ca1539dcc8ac8b",
+          "description": "Encrypted mint"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 62: coverage: PrivateWrappedEther transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "title": "Test 62: coverage: PrivateWrappedEther transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "duration": 66146,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "2"
+          ],
+          "txHash": "0x825f8845f76a92fe011b718668cfc4e82b5dc3747f390dff3058f66b830fbf5d",
+          "description": "Mint tokens to owner before encrypted transferAndCall"
+        },
+        {
+          "method": "PrivateWrappedEther.transferAndCall(address,itUint256,bytes)",
+          "args": [
+            "0x70A521fedC1A79E59fdEF468ffA0F44A566B056E",
+            "0.5"
+          ],
+          "txHash": "0x52ee910b82f67feb04dd189b6633e29e5842d65dbf5adc449697aa63e0519c85",
+          "description": "Encrypted transferAndCall"
+        }
+      ]
+    }
+  ],
   "failures": [
     {
-      "fullTitle": "Unified Privacy Bridges Suite \"before all\" hook in \"Unified Privacy Bridges Suite\"",
-      "title": "\"before all\" hook in \"Unified Privacy Bridges Suite\"",
-      "duration": 950,
+      "fullTitle": "Unified Privacy Bridges Suite Native Bridge (PrivacyBridgeCotiNative) \"before all\" hook for \"Test 1: native: Should set correct initial state\"",
+      "title": "\"before all\" hook for \"Test 1: native: Should set correct initial state\"",
+      "duration": 26008,
       "status": "failed",
       "callLog": [],
       "err": {
-        "message": "Cannot read properties of undefined (reading 'address')",
-        "stack": "TypeError: Cannot read properties of undefined (reading 'address')\n    at Context.<anonymous> (contracts/test/UnifiedPrivacyBridges.test.cjs:182:40)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite ERC20 Bridge (WETH) \"before all\" hook for \"Test 6: WETH: Should set correct initial state\"",
+      "title": "\"before all\" hook for \"Test 6: WETH: Should set correct initial state\"",
+      "duration": 10016,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 33: PrivateWrappedEther: mint(address,uint256) should mint tokens and emit Transfer",
+      "title": "Test 33: PrivateWrappedEther: mint(address,uint256) should mint tokens and emit Transfer",
+      "duration": 10013,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 61: coverage: PrivateWrappedEther burn(itUint256) encrypted burn",
+      "title": "Test 61: coverage: PrivateWrappedEther burn(itUint256) encrypted burn",
+      "duration": 28504,
+      "status": "failed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "2"
+          ],
+          "txHash": "0x05894493c3c0afb7f77835cd0ae50a16ec069db80b5b70ca724f949088132376",
+          "description": "Mint public tokens to owner before encrypted burn"
+        }
+      ],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
       }
     }
   ],
   "pending": [],
   "tests": [
     {
-      "fullTitle": "Unified Privacy Bridges Suite \"before all\" hook in \"Unified Privacy Bridges Suite\"",
-      "title": "\"before all\" hook in \"Unified Privacy Bridges Suite\"",
-      "duration": 950,
+      "fullTitle": "Unified Privacy Bridges Suite Native Bridge (PrivacyBridgeCotiNative) \"before all\" hook for \"Test 1: native: Should set correct initial state\"",
+      "title": "\"before all\" hook for \"Test 1: native: Should set correct initial state\"",
+      "duration": 26008,
       "status": "failed",
       "callLog": [],
       "err": {
-        "message": "Cannot read properties of undefined (reading 'address')",
-        "stack": "TypeError: Cannot read properties of undefined (reading 'address')\n    at Context.<anonymous> (contracts/test/UnifiedPrivacyBridges.test.cjs:182:40)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
       }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite ERC20 Bridge (WETH) \"before all\" hook for \"Test 6: WETH: Should set correct initial state\"",
+      "title": "\"before all\" hook for \"Test 6: WETH: Should set correct initial state\"",
+      "duration": 10016,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 22: PrivateCOTI: mint(address,uint256) should mint tokens and emit Transfer",
+      "title": "Test 22: PrivateCOTI: mint(address,uint256) should mint tokens and emit Transfer",
+      "duration": 16055,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "10"
+          ],
+          "txHash": "0x34d2f3c07930d2df5d9e00882eea6c13a35fd953bb1686de801ebe53d11d58ee",
+          "description": "mint(owner, 10) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 23: PrivateCOTI: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "title": "Test 23: PrivateCOTI: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "duration": 10689,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 24: PrivateCOTI: burn(uint256) should burn tokens and emit Transfer",
+      "title": "Test 24: PrivateCOTI: burn(uint256) should burn tokens and emit Transfer",
+      "duration": 19327,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.burn(uint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0x6479ef5fec0b4203163bf685448c95fca5a2c3fb9b36e854f2bc8e494251b4b6",
+          "description": "burn(1) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 25: PrivateCOTI: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "title": "Test 25: PrivateCOTI: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "duration": 14233,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transfer(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x88423cf42257dde92673e8402d259631586d514b7e643092de3cca409f08ecbf",
+          "description": "transfer(user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 26: PrivateCOTI: approve(address,uint256) should set allowance and emit Approval",
+      "title": "Test 26: PrivateCOTI: approve(address,uint256) should set allowance and emit Approval",
+      "duration": 18131,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0xd9f9a859b779120cd883596226714d5e96043044a1c5e98486abf74461a1237f",
+          "description": "approve(user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 27: PrivateCOTI: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "title": "Test 27: PrivateCOTI: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "duration": 17339,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferFrom(address,address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x5ad29bd6fa2a992b66d7964bd9641e05f385b8d0515c1736b6bb3ff54c76d3fe",
+          "description": "transferFrom(owner→user1, 2) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 28: PrivateCOTI (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "title": "Test 28: PrivateCOTI (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "duration": 14579,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.setAccountEncryptionAddress",
+          "args": [
+            "<mock_address>"
+          ],
+          "txHash": "0x9abd79565dbb2df816d402784ce0e4112f2b5aa303a8d5d5cc046760c3de3e1e",
+          "description": "setAccountEncryptionAddress on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 29: PrivateCOTI (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "title": "Test 29: PrivateCOTI (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "duration": 24545,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferAndCall",
+          "args": [
+            "0x7d8E3cAbc1D7969E7BB950200b736481CF30C929",
+            "0.1",
+            "0x68656c..."
+          ],
+          "txHash": "0x8d4f048652b724eced76a089ac85b7f9b71dd3aa1ee6e8533a8ff1b2d4bebb72",
+          "description": "transferAndCall to MockTokenReceiver on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 30: PrivateCOTI (extend): transfer(itUint256,address) with encrypted payload",
+      "title": "Test 30: PrivateCOTI (extend): transfer(itUint256,address) with encrypted payload",
+      "duration": 15167,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transfer(to, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0xd06c22a97163ac5ee4f783208f26c22990695cf2bddbc731a66d33d8f0bed5eb",
+          "description": "transfer(itUint256) on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 31: PrivateCOTI (extend): approve(address,itUint256) and allowance checks",
+      "title": "Test 31: PrivateCOTI (extend): approve(address,itUint256) and allowance checks",
+      "duration": 30137,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(spender, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0xb66850fe4042f2cea82c25f30775dfd8bcb4f00e392f23279316117d77882ecd",
+          "description": "approve(itUint256) on PrivateCOTI"
+        },
+        {
+          "method": "PrivateCOTI.reencryptAllowance",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "true"
+          ],
+          "txHash": "0x63517a18f8116b40b5e3d6cc4f6516a0dfc112348fea8f0878a1dda0c1782782",
+          "description": "reencryptAllowance on PrivateCOTI"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateCOTI) Test 32: PrivateCOTI (extend): transferFrom(address,address,itUint256)",
+      "title": "Test 32: PrivateCOTI (extend): transferFrom(address,address,itUint256)",
+      "duration": 29376,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "1"
+          ],
+          "txHash": "0xb879be7acafc211d0daf49116565f69dc911d146e87a18edd41b931148a8951e",
+          "description": "Approve owner as spender for PrivateCOTI encrypted transferFrom"
+        },
+        {
+          "method": "PrivateCOTI.transferFrom(from, to, itAmount)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x32af55f0bfb644589ce21328786f78d70ec7586df3e93eebc83b524bbe18e19b",
+          "description": "transferFrom(itUint256) on PrivateCOTI"
+        },
+        {
+          "method": "PrivateWrappedEther.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xa3bcfa26ace601b943de1f76295e2c070eda0a13713716f8a18a5563c9cfa75a",
+          "description": "Grant MINTER_ROLE to owner for PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 33: PrivateWrappedEther: mint(address,uint256) should mint tokens and emit Transfer",
+      "title": "Test 33: PrivateWrappedEther: mint(address,uint256) should mint tokens and emit Transfer",
+      "duration": 10013,
+      "status": "failed",
+      "callLog": [],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 34: PrivateWrappedEther: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "title": "Test 34: PrivateWrappedEther: mint(address,uint256) should revert for non-MINTER_ROLE",
+      "duration": 27073,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 35: PrivateWrappedEther: burn(uint256) should burn tokens and emit Transfer",
+      "title": "Test 35: PrivateWrappedEther: burn(uint256) should burn tokens and emit Transfer",
+      "duration": 25547,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.burn(uint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0x8e7c216da0cc75ea551f4274b33318d6a188a289f78e89d333f6cc5304b561a1",
+          "description": "burn(1) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 36: PrivateWrappedEther: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "title": "Test 36: PrivateWrappedEther: transfer(address,uint256) should transfer tokens and emit Transfer",
+      "duration": 19777,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transfer(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x03f5ef0b8bb23559f62a8ff1d604a9957914c9945b57af4f5305f7bfb5b10ac3",
+          "description": "transfer(user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 37: PrivateWrappedEther: approve(address,uint256) should set allowance and emit Approval",
+      "title": "Test 37: PrivateWrappedEther: approve(address,uint256) should set allowance and emit Approval",
+      "duration": 18538,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0x0a7a25dbcc471f2504e5081445b8c3a0e37339d30fc8cc8c81c2a6c6797fd85b",
+          "description": "approve(user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 38: PrivateWrappedEther: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "title": "Test 38: PrivateWrappedEther: transferFrom(address,address,uint256) should spend allowance and emit Transfer",
+      "duration": 15253,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transferFrom(address,address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "2"
+          ],
+          "txHash": "0xb1b61c5e78ef6bfde70f22309a5741378de957cbafab43bfcb8776919bbd5f79",
+          "description": "transferFrom(owner→user1, 2) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 39: PrivateWrappedEther (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "title": "Test 39: PrivateWrappedEther (extend): setAccountEncryptionAddress & accountEncryptionAddress",
+      "duration": 14604,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.setAccountEncryptionAddress",
+          "args": [
+            "<mock_address>"
+          ],
+          "txHash": "0x5a04c7b1f51edf72bc70f1384eee606afa9ecb6928af2c4c8128ee779d790217",
+          "description": "setAccountEncryptionAddress on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 40: PrivateWrappedEther (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "title": "Test 40: PrivateWrappedEther (extend): transferAndCall (ERC677) triggers onTokenReceived",
+      "duration": 24733,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transferAndCall",
+          "args": [
+            "0x445F6adcbb4741B8D4b3B98699597209d1966d4d",
+            "0.1",
+            "0x68656c..."
+          ],
+          "txHash": "0x54dcf84ebbd5fce31c9aaae3851c4e1538816ce9c7168f7ab68ca1f1c1c8d9e0",
+          "description": "transferAndCall to MockTokenReceiver on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 41: PrivateWrappedEther (extend): transfer(itUint256,address) with encrypted payload",
+      "title": "Test 41: PrivateWrappedEther (extend): transfer(itUint256,address) with encrypted payload",
+      "duration": 14600,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.transfer(to, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x96ead120d56a6acbf26524e6e8571380474f31ccba3b8c0d609c9688556e1af4",
+          "description": "transfer(itUint256) on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 42: PrivateWrappedEther (extend): approve(address,itUint256) and allowance checks",
+      "title": "Test 42: PrivateWrappedEther (extend): approve(address,itUint256) and allowance checks",
+      "duration": 30086,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(spender, itAmount)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x697c05c058580dd6e54b33376c0fa8682ea10a38d95b94d378bb9ab8ba57dc87",
+          "description": "approve(itUint256) on PrivateWrappedEther"
+        },
+        {
+          "method": "PrivateWrappedEther.reencryptAllowance",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "true"
+          ],
+          "txHash": "0x2637b0f307903afce30f68d58f9341f12cb64276f11a882684117cd87a8b747a",
+          "description": "reencryptAllowance on PrivateWrappedEther"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite PrivateERC20 Public-Amount Functions (PrivateWrappedEther) Test 43: PrivateWrappedEther (extend): transferFrom(address,address,itUint256)",
+      "title": "Test 43: PrivateWrappedEther (extend): transferFrom(address,address,itUint256)",
+      "duration": 30247,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.approve(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "1"
+          ],
+          "txHash": "0xe7940e3a37f64664cee3b02d6f426251943f66e51949cdf8705a8ef78e8e27e2",
+          "description": "Approve owner as spender for PrivateWrappedEther encrypted transferFrom"
+        },
+        {
+          "method": "PrivateWrappedEther.transferFrom(from, to, itAmount)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "<encrypted>"
+          ],
+          "txHash": "0x7c294c4140e6c30ce4bfd3643f71e0419d6e5185c7402d1a9cd49eb95f525272",
+          "description": "transferFrom(itUint256) on PrivateWrappedEther"
+        },
+        {
+          "method": "PrivateCOTI.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xCCB025f8a7D53ef479fB8c6c7B9e7a34eb29d821"
+          ],
+          "txHash": "0xa5b0944a86bf9e86a7d6f89e95045c1099bf99f291b317e5df135fe19be2a3c6",
+          "description": "Grant MINTER_ROLE to bridge (coverage suite)"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 45: coverage: getBridgeBalance explicit check",
+      "title": "Test 45: coverage: getBridgeBalance explicit check",
+      "duration": 1467,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 46: coverage: receive() fallback with direct transfer",
+      "title": "Test 46: coverage: receive() fallback with direct transfer",
+      "duration": 18696,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "receive()",
+          "args": [
+            "0.01"
+          ],
+          "txHash": "0xef5c369d34cc2debaabae38466af9cf9482c2c4907049060e41b37ca6d7a825f",
+          "description": "Direct COTI transfer to bridge (receive fallback)"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivacyBridgeCotiNative Test 47: coverage: onTokenReceived direct call should revert InvalidAddress",
+      "title": "Test 47: coverage: onTokenReceived direct call should revert InvalidAddress",
+      "duration": 938,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xd72392c47c740fccc237e78019700b253ecd7641729e8287fb4f39260056f85f",
+          "description": "Grant MINTER_ROLE to owner for coverage tests"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 48: coverage: name() returns token name",
+      "title": "Test 48: coverage: name() returns token name",
+      "duration": 760,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 49: coverage: symbol() returns token symbol",
+      "title": "Test 49: coverage: symbol() returns token symbol",
+      "duration": 707,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 50: coverage: decimals() returns 18",
+      "title": "Test 50: coverage: decimals() returns 18",
+      "duration": 822,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 51: coverage: totalSupply() returns 0 (not implemented)",
+      "title": "Test 51: coverage: totalSupply() returns 0 (not implemented)",
+      "duration": 967,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 52: coverage: balanceOf(address) returns ciphertext after mint",
+      "title": "Test 52: coverage: balanceOf(address) returns ciphertext after mint",
+      "duration": 17532,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "5"
+          ],
+          "txHash": "0xc50808686c4d59a66759ea8d8f8b1e58e3bb0b69b9c754db1b8435f0d651da3b",
+          "description": "Mint for balance query test"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 53: coverage: balanceOf() returns garbled balance",
+      "title": "Test 53: coverage: balanceOf() returns garbled balance",
+      "duration": 2156,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 54: coverage: allowance(address,address) returns Allowance struct",
+      "title": "Test 54: coverage: allowance(address,address) returns Allowance struct",
+      "duration": 18305,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.approve(address,uint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "1"
+          ],
+          "txHash": "0xcdb7e52121b68fcabba7f18456c6ec957c79a02763d26e42e302c6ba35de0872",
+          "description": "Approve for allowance query test"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 55: coverage: allowance(address,bool) returns garbled allowance",
+      "title": "Test 55: coverage: allowance(address,bool) returns garbled allowance",
+      "duration": 2026,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 56: coverage: mint(address,itUint256) encrypted mint",
+      "title": "Test 56: coverage: mint(address,itUint256) encrypted mint",
+      "duration": 16220,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.mint(address,itUint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "3"
+          ],
+          "txHash": "0x7c607b913eab9f4e43324f2f0143a968572c1339e438993aa2c11fe48cc73328",
+          "description": "Encrypted mint"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 57: coverage: burn(itUint256) encrypted burn",
+      "title": "Test 57: coverage: burn(itUint256) encrypted burn",
+      "duration": 15698,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.burn(itUint256)",
+          "args": [
+            "1"
+          ],
+          "txHash": "0xa397bfd477db700a74f6d29a16b491acf12a72c8300d3d5c3226ee441de598b9",
+          "description": "Encrypted burn"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 58: coverage: supportsInterface(bytes4) checks ERC165",
+      "title": "Test 58: coverage: supportsInterface(bytes4) checks ERC165",
+      "duration": 831,
+      "status": "passed",
+      "callLog": []
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateERC20 Test 59: coverage: transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "title": "Test 59: coverage: transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "duration": 24405,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateCOTI.transferAndCall(address,itUint256,bytes)",
+          "args": [
+            "0xd4C2Ad56Ba105Ce4c7Ff3e6b27AC4ed32E4B6D98",
+            "0.5"
+          ],
+          "txHash": "0x0f61e44c59f91086a592452af25bb8f08e3562a7b7d3bb81a810c4f99055a874",
+          "description": "Encrypted transferAndCall"
+        },
+        {
+          "method": "PrivateWrappedEther.grantRole",
+          "args": [
+            "MINTER_ROLE",
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012"
+          ],
+          "txHash": "0xf51932b7df6dcc67b998efc3ce86ba4e03f597dd46e8bea07a04f0c909fff227",
+          "description": "Grant MINTER_ROLE to owner for PrivateWrappedEther coverage tests"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 60: coverage: PrivateWrappedEther mint(address,itUint256) encrypted mint",
+      "title": "Test 60: coverage: PrivateWrappedEther mint(address,itUint256) encrypted mint",
+      "duration": 14850,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,itUint256)",
+          "args": [
+            "0x226D3Eb51e24D98150e682d0337c214779cD52A2",
+            "3"
+          ],
+          "txHash": "0x3cd3bb85a1169938d6e01c24ccb001ecc9d1a7abdd9d11c7a8ca1539dcc8ac8b",
+          "description": "Encrypted mint"
+        }
+      ]
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 61: coverage: PrivateWrappedEther burn(itUint256) encrypted burn",
+      "title": "Test 61: coverage: PrivateWrappedEther burn(itUint256) encrypted burn",
+      "duration": 28504,
+      "status": "failed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "2"
+          ],
+          "txHash": "0x05894493c3c0afb7f77835cd0ae50a16ec069db80b5b70ca724f949088132376",
+          "description": "Mint public tokens to owner before encrypted burn"
+        }
+      ],
+      "err": {
+        "message": "Connect Timeout Error",
+        "stack": "ConnectTimeoutError: Connect Timeout Error\n    at onConnectTimeout (node_modules/undici/lib/core/connect.js:186:24)\n    at /Users/percival.lucena/coti/portal-bridge-contracts/node_modules/undici/lib/core/connect.js:133:46\n    at Immediate._onImmediate (node_modules/undici/lib/core/connect.js:174:9)\n    at processImmediate (node:internal/timers:504:21)"
+      }
+    },
+    {
+      "fullTitle": "Unified Privacy Bridges Suite Coverage Improvements - PrivateWrappedEther Test 62: coverage: PrivateWrappedEther transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "title": "Test 62: coverage: PrivateWrappedEther transferAndCall(address,itUint256,bytes) encrypted ERC677",
+      "duration": 66146,
+      "status": "passed",
+      "callLog": [
+        {
+          "method": "PrivateWrappedEther.mint(address,uint256)",
+          "args": [
+            "0xAb81c57CCc578a5636BFF47B896BEC6Af1c30012",
+            "2"
+          ],
+          "txHash": "0x825f8845f76a92fe011b718668cfc4e82b5dc3747f390dff3058f66b830fbf5d",
+          "description": "Mint tokens to owner before encrypted transferAndCall"
+        },
+        {
+          "method": "PrivateWrappedEther.transferAndCall(address,itUint256,bytes)",
+          "args": [
+            "0x70A521fedC1A79E59fdEF468ffA0F44A566B056E",
+            "0.5"
+          ],
+          "txHash": "0x52ee910b82f67feb04dd189b6633e29e5842d65dbf5adc449697aa63e0519c85",
+          "description": "Encrypted transferAndCall"
+        }
+      ]
     }
   ],
-  "contractAddresses": []
+  "contractAddresses": [
+    {
+      "contractName": "PrivateCOTI",
+      "address": "0x03eeA59b1F0Dfeaece75531b27684DD882f79759",
+      "suite": "PrivateERC20 Public-Amount (PrivateCOTI)"
+    },
+    {
+      "contractName": "PrivateWrappedEther",
+      "address": "0x6f7E5eE3a913aa00c6eB9fEeCad57a7d02F7f45c",
+      "suite": "PrivateERC20 Public-Amount (PrivateWrappedEther)"
+    },
+    {
+      "contractName": "PrivacyBridgeCotiNative",
+      "address": "0xCCB025f8a7D53ef479fB8c6c7B9e7a34eb29d821",
+      "suite": "Coverage - PrivacyBridgeCotiNative"
+    },
+    {
+      "contractName": "PrivateCOTI",
+      "address": "0x03eeA59b1F0Dfeaece75531b27684DD882f79759",
+      "suite": "Coverage - PrivacyBridgeCotiNative"
+    },
+    {
+      "contractName": "PrivateCOTI",
+      "address": "0x03eeA59b1F0Dfeaece75531b27684DD882f79759",
+      "suite": "Coverage - PrivateERC20"
+    },
+    {
+      "contractName": "PrivateWrappedEther",
+      "address": "0x6f7E5eE3a913aa00c6eB9fEeCad57a7d02F7f45c",
+      "suite": "Coverage - PrivateWrappedEther"
+    }
+  ]
 }

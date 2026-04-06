@@ -8,6 +8,12 @@ Solidity contracts for the COTI Privacy Bridge — private tokens (`p.tokens`) a
 npm install
 cp .env.example .env
 # fill in PRIVATE_KEY and other required vars
+
+#clone contracts project
+git clone -b development https://github.com/coti-io/coti-contracts.git 
+
+npx hardhat compile
+
 ```
 
 ## Running Tests
@@ -47,20 +53,21 @@ See [docs/DEPLOY_GUIDE.md](docs/DEPLOY_GUIDE.md) for the full deployment walkthr
 npx hardhat compile
 
 # Deploy to Testnet
-npx hardhat run scripts/redeploy-private-and-bridges.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet
 
 # Deploy to Mainnet
-npx hardhat run scripts/redeploy-private-and-bridges.cjs --network cotiMainnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiMainnet
 ```
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `PRIVATE_KEY` | Yes | Deployer wallet private key (no `0x` prefix) |
-| `PRIVATE_KEY2` | Optional | Secondary wallet for multi-account tests |
-| `PRIVATE_AES_KEY_TESTNET` | Tests only | AES key for encrypted deposit tests |
-| `VITE_DEFAULT_NETWORK_ID` | Yes | Chain ID in hex (`0x6c11a0` testnet, `0x282934` mainnet) |
-| `VITE_USE_ENCRYPTED_DEPOSITS` | Optional | Set `true` to enable encrypted ERC20 deposits |
+
+| Variable                      | Required   | Description                                              |
+| ----------------------------- | ---------- | -------------------------------------------------------- |
+| `PRIVATE_KEY`                 | Yes        | Deployer wallet private key (no`0x` prefix)              |
+| `PRIVATE_KEY2`                | Optional   | Secondary wallet for multi-account tests                 |
+| `PRIVATE_AES_KEY_TESTNET`     | Tests only | AES key for encrypted deposit tests                      |
+| `VITE_DEFAULT_NETWORK_ID`     | Yes        | Chain ID in hex (`0x6c11a0` testnet, `0x282934` mainnet) |
+| `VITE_USE_ENCRYPTED_DEPOSITS` | Optional   | Set`true` to enable encrypted ERC20 deposits             |
 
 > Never commit your `.env` file — it's in `.gitignore`.

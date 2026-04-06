@@ -5,6 +5,8 @@ require("@nomicfoundation/hardhat-chai-matchers");
 require("dotenv").config();
 
 
+const path = require("path");
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const PRIVATE_KEY2 = process.env.PRIVATE_KEY2 || "";
 
@@ -85,8 +87,8 @@ module.exports = {
         enabled: false
     },
     paths: {
-        sources: "./contracts",
-        tests: "./contracts/test",
+        sources: "./coti-contracts/contracts",
+        tests: "./coti-contracts/test",
         cache: "./cache",
         artifacts: "./artifacts"
     },
