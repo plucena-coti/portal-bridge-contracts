@@ -69,11 +69,11 @@ git diff /deploy/privacy_bridge/config.ts
 
 ### Update UI 
 
-1. clone appropriate branch (staging/main) from https://github.com/cotitech-io/coti-privacy-portal/ 
+ 
 
-2. copy /deploy/privacy_bridge/config.ts to clonded folder /src/contracts/config.ts
+2. copy /deploy/privacy_bridge/config.ts to clonded coti-privacy-portal/src/contracts/config.ts
 
-3. commit your changes to coti-privacy-portal repo
+3. commit your changes to coti-privacy-portal repo appropriate branch
 
 
 ## Verify contracts
