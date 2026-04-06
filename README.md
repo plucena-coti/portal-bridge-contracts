@@ -16,9 +16,7 @@ Copy `.env.example` to `.env` and set the following variables before running any
 | `PRIVATE_KEY`                 | ✅ Yes     | Private key of the deployer wallet (no`0x` prefix). This account pays all deployment gas and becomes the contract owner/admin.                                                                                                  |
 | `PRIVATE_KEY2`                | Optional   | Secondary wallet used for multi-account testing only. Not needed for deployment.                                                                                                                                                |
 | `PRIVATE_AES_KEY_TESTNET`     | Tests only | AES key for the deployer wallet on Testnet (32 hex chars, no`0x` prefix). Required to run encrypted deposit tests. Generated during COTI Snap onboarding at [dev.metamask.coti.io/wallet](https://dev.metamask.coti.io/wallet). |
-| `VITE_DEFAULT_NETWORK_ID`     | ✅ Yes     | Chain ID in hex for the NetworkGuard. Use`0x6c11a0` for Testnet, `0x282934` for Mainnet.                                                                                                                                        |
-| `VITE_USE_ENCRYPTED_DEPOSITS` | Optional   | Set to`true` to enable encrypted ERC20 deposits. Defaults to `false`.                                                                                                                                                           |
-| `VITE_COTI_SNAP_ID`           | Optional   | Override the MetaMask Snap ID. Defaults to`npm:@coti-io/coti-snap`.                                                                                                                                                             |
+                                                                               |
 
 Example `.env` for testnet deployment and testing:
 
