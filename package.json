@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "scripts": {
     "compile": "npx hardhat compile",
-    "test": "TEST_REPORT=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
-    "test:private-erc20": "ONLY_PRIVATE_ERC20=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
-    "generate:test-report": "TEST_REPORT=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
-    "generate:test-report:erc20": "TEST_REPORT=1 ONLY_PRIVATE_ERC20=1 npx hardhat test contracts/test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
-    "coverage:testnet": "TEST_REPORT=1 npm run test && node contracts/test/helpers/generate-coverage.cjs",
+    "test:contracts": "TEST_REPORT=1 npx hardhat test test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
+    "test": "TEST_REPORT=1 npx hardhat test test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
+    "test:private-erc20": "ONLY_PRIVATE_ERC20=1 npx hardhat test test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet",
+    "generate:test-report": "TEST_REPORT=1 npx hardhat test test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
+    "generate:test-report:erc20": "TEST_REPORT=1 ONLY_PRIVATE_ERC20=1 npx hardhat test test/UnifiedPrivacyBridges.test.cjs --network cotiTestnet && node scripts/generate-test-report.cjs",
+    "coverage:testnet": "TEST_REPORT=1 npm run test && node test/helpers/generate-coverage.cjs",
     "coverage-report": "node scripts/generate-coverage-report.cjs"
   },
   "devDependencies": {

@@ -88,7 +88,7 @@ module.exports = {
     },
     paths: {
         sources: "./coti-contracts/contracts",
-        tests: "./coti-contracts/test",
+        tests: "./test",
         cache: "./cache",
         artifacts: "./artifacts"
     },
