@@ -60,18 +60,17 @@ npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network
 This script reuses the existing public token addresses and  redeploys `p.tokens` and bridges, then updates `/deploy/privacy_bridge/config.ts` configuration file.
 This configuration file should be copied and commited to UI project as instructions bellow
 
----
-### Verify the config was updated
 
-```bash
-git diff /deploy/privacy_bridge/config.ts
 ```
 
 ### Update UI 
 
- 
-
-2. copy /deploy/privacy_bridge/config.ts to clonded coti-privacy-portal/src/contracts/config.ts
+ ---
+1. Verify the config was updated
+```bash
+git diff /deploy/privacy_bridge/config.ts
+``` 
+2. copy /deploy/privacy_bridge/config.ts to UI repo: coti-privacy-portal/src/contracts/config.ts
 
 3. commit your changes to coti-privacy-portal repo appropriate branch
 
