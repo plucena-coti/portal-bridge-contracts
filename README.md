@@ -36,7 +36,7 @@ The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target n
 
 ---
 
-##2.  How to Run the Deployment Script
+## 2  How to Run the Deployment Script
 
 
 > ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
