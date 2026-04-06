@@ -52,7 +52,7 @@ git clone -b development https://github.com/coti-io/coti-contracts.git
 npx hardhat compile
 
 # 3. Deploy  
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet   OR
 
 npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet cotiMainnet
 ```
