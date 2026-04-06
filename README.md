@@ -80,7 +80,7 @@ git diff /deploy/privacy_bridge/config.ts
 # Regenerate flattened files and verification JSONs for contract verification
 npx hardhat run admin/generate_all_flattened_and_json.cjs
 ```
-> ⚠️ Use flatened jsons to verify contracts on cotiscan.  API upload, seems disabled so upload contracts one by one.  You can see full contract list at /dashboard URL
+> ⚠️ Use flatened jsons to verify contracts on cotiscan.  API JSON upload, seems to be disabled so you need to verify and upload JSONs individually.  You can see full contract list  online at /backoffice URL
 
 
 ## Test Contracts
