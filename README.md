@@ -4,7 +4,7 @@ This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Priva
 
 ---
 
-## Prerequisites
+## 1. Prerequisites
 
 ### 1. Environment Variables
 
@@ -36,7 +36,7 @@ The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target n
 
 ---
 
-## How to Run the Deployment Script
+##2.  How to Run the Deployment Script
 
 
 > ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
@@ -61,7 +61,7 @@ This configuration file should be copied and commited to UI project as instructi
 
 
 
-## Update UI 
+## 3.  How to Update UI for new contract addresses
 
  ---
 1. Verify the config file was updated
@@ -73,7 +73,7 @@ git diff /deploy/privacy_bridge/config.ts
 3. commit your changes to coti-privacy-portal repo appropriate branch
 
 
-## Verify contracts
+## 4. Verify contracts
 
 
 ```bash
@@ -83,7 +83,7 @@ npx hardhat run admin/generate_all_flattened_and_json.cjs
 > ⚠️ Use flatened jsons to verify contracts on cotiscan.  API JSON upload, seems to be disabled so you need to verify and upload JSONs individually.  You can see full contract list  online at /backoffice URL
 
 
-## Test Contracts
+## 5. Test Contracts
 
 Tests run against the live COTI Testnet and require `PRIVATE_KEY` (and `PRIVATE_AES_KEY_TESTNET` for encrypted deposit tests) to be set in `.env`.
 
