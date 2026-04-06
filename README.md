@@ -64,7 +64,7 @@ This configuration file should be copied and commited to UI project as instructi
 ## Update UI 
 
  ---
-1. Verify the config was updated
+1. Verify the config file was updated
 ```bash
 git diff /deploy/privacy_bridge/config.ts
 ``` 
@@ -75,9 +75,9 @@ git diff /deploy/privacy_bridge/config.ts
 
 ## Verify contracts
 
-### Regenerate flattened files and verification JSONs for contract verification
 
 ```bash
+# Regenerate flattened files and verification JSONs for contract verification
 npx hardhat run admin/generate_all_flattened_and_json.cjs
 ```
 
@@ -91,7 +91,7 @@ Tests run against the live COTI Testnet and require `PRIVATE_KEY` (and `PRIVATE_
 ```bash
 npm run test:contracts
 ```
-```
+
 The report is generated from `test-results.json` (produced by the custom Mocha reporter). You can now generate test report:
 
 ```bash
