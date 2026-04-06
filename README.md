@@ -61,7 +61,7 @@ This configuration file should be copied and commited to UI project as instructi
 
 
 
-### Update UI 
+## Update UI 
 
  ---
 1. Verify the config was updated
