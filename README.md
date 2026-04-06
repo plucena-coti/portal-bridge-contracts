@@ -61,7 +61,6 @@ This script reuses the existing public token addresses and  redeploys `p.tokens`
 This configuration file should be copied and commited to UI project as instructions bellow
 
 
-```
 
 ### Update UI 
 
