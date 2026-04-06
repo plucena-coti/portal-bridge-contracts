@@ -34,13 +34,12 @@ PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
 
 The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 private tokens + 7 bridges + role grants)
 
-## The Script
 
-**Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
+> ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
 
 ---
 
-## How to Run
+## How to Run the Deployment Script
 
 From the project root:
 
@@ -51,7 +50,7 @@ git clone -b development https://github.com/coti-io/coti-contracts.git
 # 2. Compile contracts
 npx hardhat compile
 
-# 3. Deploy  
+# 3. Run the Deployment Script  
 npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet   OR
 
 npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network  cotiMainnet
