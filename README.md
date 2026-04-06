@@ -6,7 +6,7 @@ This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Priva
 
 ## 1. Prerequisites
 
-### 1. Environment Variables
+### 1.1 Environment Variables
 
 Copy `.env.example` to `.env` and set the following variables before running any deployment or contract tests:
 
@@ -28,7 +28,7 @@ PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
 
 > ⚠️ Never commit your `.env` file. It is already listed in `.gitignore`.
 
-### 2. Funded Wallet
+### 1.2 Funded Wallet
 
 The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 private tokens + 7 bridges + role grants)
 
