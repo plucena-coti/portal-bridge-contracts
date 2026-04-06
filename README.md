@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges for the COTI Testnet, and hoe to update the frontend UI configuration to use the new contract addresses.
+This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges, and how to update the frontend UI configuration to use the new contract addresses.
 
 ---
 
