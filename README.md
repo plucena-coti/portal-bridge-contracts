@@ -36,7 +36,7 @@ The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target n
 
 ---
 
-## 2  How to Run the Deployment Script
+## 2.  How to Run the Deployment Script
 
 
 > ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
@@ -68,9 +68,11 @@ This configuration file should be copied and commited to UI project as instructi
 ```bash
 git diff /deploy/privacy_bridge/config.ts
 ``` 
-2. copy /deploy/privacy_bridge/config.ts to UI repo: coti-privacy-portal/src/contracts/config.ts
+2. clone appropriate branch https://github.com/cotitech-io/coti-privacy-portal/
 
-3. commit your changes to coti-privacy-portal repo appropriate branch
+3. copy /deploy/privacy_bridge/config.ts to UI repo: coti-privacy-portal/src/contracts/config.ts
+
+4. commit your changes to coti-privacy-portal repo appropriate branch
 
 
 ## 4. Verify contracts
