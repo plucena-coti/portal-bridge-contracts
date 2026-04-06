@@ -57,22 +57,17 @@ npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network
 npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet cotiMainnet
 ```
 
-This script reuses the existing public token addresses and only redeploys `p.tokens` and bridges, then updates `/deploy/privacy_bridge/config.ts`.
+This script reuses the existing public token addresses and  redeploys `p.tokens` and bridges, then updates `/deploy/privacy_bridge/config.ts` configuration file.
+This configuration file should be copied and commited to UI project as instructions bellow
 
 ---
-
-
----
-
-## After Deployment
-
 ### Verify the config was updated
 
 ```bash
 git diff /deploy/privacy_bridge/config.ts
 ```
 
-### Update
+### Update UI 
 
 1. clone appropriate branch (staging/main) from https://github.com/cotitech-io/coti-privacy-portal/ 
 
@@ -81,15 +76,16 @@ git diff /deploy/privacy_bridge/config.ts
  3. commit your changes to coti-privacy-portal repo
 
 
+## Verify contracts
+
 ### Regenerate flattened files and verification JSONs for contract verification
 
 ```bash
 npx hardhat run admin/generate_all_flattened_and_json.cjs
-npx hardhat run admin/generate-verify-json.cjs --network cotiTestnet
 ```
 
 
-## Contract Tests
+## Test Contracts
 
 Tests run against the live COTI Testnet and require `PRIVATE_KEY` (and `PRIVATE_AES_KEY_TESTNET` for encrypted deposit tests) to be set in `.env`.
 
@@ -98,17 +94,9 @@ Tests run against the live COTI Testnet and require `PRIVATE_KEY` (and `PRIVATE_
 ```bash
 npm run test:contracts
 ```
-
-### Run tests and generate a Markdown report
-
-Runs the full suite and writes `TEST_EXECUTION_REPORT.md`:
-
-```bash
-npm run generate:test-report
 ```
-
-The report is generated from `test-results.json` (produced by the custom Mocha reporter). You can also regenerate it from an existing results file without re-running tests:
+The report is generated from `test-results.json` (produced by the custom Mocha reporter). You can now generate test report:
 
 ```bash
-node scripts/generate-test-report.cjs
+node admin/generate-test-report.cjs
 ```
