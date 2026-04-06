@@ -35,11 +35,13 @@ PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
 The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 private tokens + 7 bridges + role grants)
 
 
-> ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
 
 ---
 
 ## How to Run the Deployment Script
+
+
+> ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
 
 From the project root:
 
