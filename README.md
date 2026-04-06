@@ -54,7 +54,7 @@ npx hardhat compile
 # 3. Deploy  
 npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet   OR
 
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet cotiMainnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network  cotiMainnet
 ```
 
 This script reuses the existing public token addresses and  redeploys `p.tokens` and bridges, then updates `/deploy/privacy_bridge/config.ts` configuration file.
