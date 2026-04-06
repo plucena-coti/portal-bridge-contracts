@@ -43,7 +43,7 @@ The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target n
 
 > ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
 
-From the project root:
+From the project root folder run:
 
 ```bash
 # 1.Clone contracts repo
