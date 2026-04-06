@@ -74,10 +74,11 @@ git diff /deploy/privacy_bridge/config.ts
 
 ### Update
 
-1. clone branch from 
+1. clone appropriate branch (staging/main) from https://github.com/cotitech-io/coti-privacy-portal/ 
 
-copy /deploy/privacy_bridge/config.ts to privacy portal branch (main/staging/testnet) and commit there the file /src/contracts/config.ts
+2. copy /deploy/privacy_bridge/config.ts to clonded folder /src/contracts/config.ts
 
+ 3. commit your changes to coti-privacy-portal repo
 
 
 ### Regenerate flattened files and verification JSONs for contract verification
