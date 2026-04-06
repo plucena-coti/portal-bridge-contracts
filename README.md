@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges for the COTI Testnet, and automatically update the frontend configuration to point at the new addresses.
+This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges for the COTI Testnet, and hoe to update the frontend UI configuration to use the new contract addresses.
 
 ---
 
@@ -32,7 +32,7 @@ PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
 
 ### 2. Funded Wallet
 
-The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 public mocks + 7 private tokens + 7 bridges + role grants)
+The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 private tokens + 7 bridges + role grants)
 
 ## The Script
 
@@ -73,7 +73,7 @@ git diff /deploy/privacy_bridge/config.ts
 
 2. copy /deploy/privacy_bridge/config.ts to clonded folder /src/contracts/config.ts
 
- 3. commit your changes to coti-privacy-portal repo
+3. commit your changes to coti-privacy-portal repo
 
 
 ## Verify contracts
