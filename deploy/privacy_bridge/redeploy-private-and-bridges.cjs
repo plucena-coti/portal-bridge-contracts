@@ -149,7 +149,28 @@ async function main() {
         console.log("✅");
     }
 
-    // ── 4. Update local deploy/privacy_bridge/config.ts ─────────────────
+    // ── 4. Set Price Oracle on all bridges ─────────────────────────────
+    console.log("\n--- Setting Price Oracle ---");
+    // CotiPriceConsumer deployed addresses per network
+    const PRICE_ORACLE = {
+        7082400: "0xAC89a381E84fbd5B3B536a3b895eB2aDdaDC36A1", // testnet
+        2632500: "",                                              // mainnet — set when deployed
+    };
+    const oracleAddr = PRICE_ORACLE[chainId];
+    if (oracleAddr) {
+        for (const bridge of bridges) {
+            const bridgeAddress = newAddresses[bridge.bridgeKey];
+            const bridgeContract = await hre.ethers.getContractAt("PrivacyBridge", bridgeAddress);
+            process.stdout.write(`  ${bridge.name}: setPriceOracle... `);
+            const tx = await bridgeContract.setPriceOracle(oracleAddr, { gasLimit: 5000000 });
+            await tx.wait();
+            console.log("✅");
+        }
+    } else {
+        console.log("  ⚠️  No price oracle address configured for this network. Set it manually after deployment.");
+    }
+
+    // ── 5. Update local deploy/privacy_bridge/config.ts ─────────────────
     console.log("\n--- Updating local config.ts ---");
 
     let configContent = fs.readFileSync(CONFIG_PATH, "utf8");
@@ -229,7 +250,36 @@ async function main() {
     fs.writeFileSync(CONFIG_PATH, configContent, "utf8");
     console.log(`✅ config.ts updated at ${CONFIG_PATH}`);
 
-    // ── 5. Summary ────────────────────────────────────────────────────────
+    // ── 6. Also update docs/config.ts if it exists ──────────────────────
+    const docsConfigPath = path.resolve(__dirname, "../../docs/config.ts");
+    if (fs.existsSync(docsConfigPath)) {
+        let docsContent = fs.readFileSync(docsConfigPath, "utf8");
+        const docsStartIdx = docsContent.indexOf(`${chainId}: {`);
+        if (docsStartIdx !== -1) {
+            let docsBlockStart = docsStartIdx;
+            let docsLineStart = docsContent.lastIndexOf("\n", docsStartIdx - 1);
+            for (let look = 0; look < 2 && docsLineStart > 0; look++) {
+                const prevLineStart = docsContent.lastIndexOf("\n", docsLineStart - 1);
+                const prevLine = docsContent.slice(prevLineStart + 1, docsLineStart).trim();
+                if (prevLine.startsWith("//")) { docsBlockStart = prevLineStart + 1; break; }
+                if (prevLine === "") { docsLineStart = prevLineStart; continue; }
+                break;
+            }
+            let docsDepth = 0, docsI = docsContent.indexOf("{", docsStartIdx);
+            while (docsI < docsContent.length) {
+                if (docsContent[docsI] === "{") docsDepth++;
+                else if (docsContent[docsI] === "}") { docsDepth--; if (docsDepth === 0) break; }
+                docsI++;
+            }
+            docsContent = docsContent.slice(0, docsBlockStart) + newBlock + docsContent.slice(docsI + 1);
+            fs.writeFileSync(docsConfigPath, docsContent, "utf8");
+            console.log(`✅ docs/config.ts also updated`);
+        } else {
+            console.log(`⚠️  Could not find ${chainId} block in docs/config.ts. Update manually.`);
+        }
+    }
+
+    // ── 7. Summary ────────────────────────────────────────────────────────
     console.log("\n========================================================");
     console.log("  DEPLOYMENT COMPLETE");
     console.log("========================================================");

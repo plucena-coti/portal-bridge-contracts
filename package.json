@@ -13,16 +13,17 @@
     "coverage-report": "node scripts/generate-coverage-report.cjs"
   },
   "devDependencies": {
+    "@coti-io/coti-contracts": "^1.1.0",
+    "@coti-io/coti-ethers": "^1.0.5",
+    "@coti-io/coti-sdk-typescript": "^1.0.6",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@openzeppelin/contracts": "^4.9.6",
-    "@coti-io/coti-contracts": "^1.1.0",
-    "@coti-io/coti-ethers": "^1.0.5",
-    "@coti-io/coti-sdk-typescript": "^1.0.6",
     "chai": "^4.5.0",
     "dotenv": "^17.2.3",
     "ethers": "^6.16.0",
+    "fast-check": "^4.7.0",
     "hardhat": "^2.22.17",
     "solidity-coverage": "^0.8.17"
   }

@@ -319,7 +319,7 @@ describe("Unified Privacy Bridges Suite", function () {
                     const bridgeAddr = await addr(bridge);
                     await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), `Grant MINTER_ROLE to ${cfg.name} Bridge`, "PrivateWrappedEther.grantRole", ["MINTER_ROLE", bridgeAddr]);
                 } else {
-                    publicToken = await (await ethers.getContractFactory(cfg.publicFactory)).deploy("Wrapped Ether", "WETH", { gasLimit: 12000000 });
+                    publicToken = await (await ethers.getContractFactory(cfg.publicFactory)).deploy("Wrapped Ether", "WETH", cfg.decimals, { gasLimit: 12000000 });
                     await (publicToken.waitForDeployment ? publicToken.waitForDeployment() : publicToken.deployed());
 
                     privateToken = await (await ethers.getContractFactory("PrivateERC20Mock")).deploy({ gasLimit: 12000000 });
@@ -384,7 +384,7 @@ describe("Unified Privacy Bridges Suite", function () {
 
                 // Deploy a different ERC20 token (not the bridge token) to test rescue functionality
                 const StrayTokenFactory = await ethers.getContractFactory("ERC20Mock");
-                const strayToken = await StrayTokenFactory.deploy("Stray Token", "STRAY", { gasLimit: 12000000 });
+                const strayToken = await StrayTokenFactory.deploy("Stray Token", "STRAY", 18, { gasLimit: 12000000 });
                 await (strayToken.waitForDeployment ? strayToken.waitForDeployment() : strayToken.deployed());
                 const strayAddr = await addr(strayToken);
 
