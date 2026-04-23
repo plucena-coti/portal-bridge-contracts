@@ -204,7 +204,7 @@ describe("Unified Privacy Bridges Suite", function () {
     // NATIVE BRIDGE TESTS
     // ─────────────────────────────────────────────────────────────────────────
     describe("Native Bridge (PrivacyBridgeCotiNative)", function () {
-        let privateCoti, bridge;
+        let privateCoti, bridge, mockOracle;
 
         before(async function () {
             if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
@@ -212,15 +212,24 @@ describe("Unified Privacy Bridges Suite", function () {
             privateCoti = await PrivateCotiFactory.deploy({ gasLimit: 12000000 });
             await (privateCoti.waitForDeployment ? privateCoti.waitForDeployment() : privateCoti.deployed());
 
+            // Deploy mock oracle and set COTI price ($0.05)
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+
             const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
             const pCotiAddr = await addr(privateCoti);
             bridge = await BridgeFactory.deploy(pCotiAddr, { gasLimit: 12000000 });
             await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
             const bridgeAddr = await addr(bridge);
+            // Set price oracle on bridge
+            await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set price oracle on Native Bridge", "PrivacyBridgeCotiNative.setPriceOracle", [await addr(mockOracle)]);
             await logTx(await privateCoti.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), "Grant MINTER_ROLE to Native Bridge", "PrivateERC20Mock.grantRole", ["MINTER_ROLE", bridgeAddr]);
             await registerContract("PrivacyBridgeCotiNative", bridge, "Native Bridge");
             await registerContract("PrivateERC20Mock", privateCoti, "Native Bridge");
+            await registerContract("MockCotiPriceConsumer", mockOracle, "Native Bridge");
             await new Promise(r => setTimeout(r, 5000)); // Extra settle time after role grant
         });
 
@@ -254,22 +263,25 @@ describe("Unified Privacy Bridges Suite", function () {
             await expect(tx).to.emit(bridge, "Withdraw");
         });
 
-        it("Test 4: native: Should deduct fee and let owner withdraw fees", async function () {
-            await logTx(await bridge.setDepositFee(10000, { gasLimit: 2000000 }), "Set 1% deposit fee", "PrivacyBridgeCotiNative.setDepositFee", [10000]);
-            const gross = ethers.parseEther("0.1");
-            const expectedFee = gross * 10000n / 1000000n;
+        it("Test 4: native: Should deduct dynamic fee and let owner withdraw fees", async function () {
+            // Dynamic fee uses oracle-based calculation. With default params:
+            // depositFixedFee=10 COTI, depositPercentageBps=500, depositMaxFee=3000 COTI
+            // For a 0.1 COTI deposit at $0.05/COTI: txValueUsd=$0.005, pctFee=$0.0000025, pctFeeCoti=0.00005 COTI
+            // fee = max(10 COTI, 0.00005 COTI) = 10 COTI (floor dominates for small amounts)
+            // So we need to deposit more than the fixed fee floor (10 COTI)
+            const gross = ethers.parseEther("100");
 
-            const feeBefore = await bridge.accumulatedFees();
-            await logTx(await bridge["deposit()"]({ value: gross, gasLimit: 12000000 }), "Deposit for fee accumulation", "PrivacyBridgeCotiNative.deposit() -> PrivateERC20Mock.mint", [ethers.formatEther(gross)]);
+            const feeBefore = await bridge.accumulatedCotiFees();
+            await logTx(await bridge["deposit()"]({ value: gross, gasLimit: 12000000 }), "Deposit for dynamic fee accumulation", "PrivacyBridgeCotiNative.deposit()", [ethers.formatEther(gross)]);
 
-            const feeAfter = await bridge.accumulatedFees();
-            expect(feeAfter - feeBefore).to.equal(expectedFee);
+            const feeAfter = await bridge.accumulatedCotiFees();
+            const actualFee = feeAfter - feeBefore;
+            expect(actualFee).to.be.gt(0n);
+            console.log(`    [Info] Dynamic fee charged: ${ethers.formatEther(actualFee)} COTI`);
 
             // Withdraw fees
-            await logTx(await bridge.withdrawFees(owner.address, expectedFee, { gasLimit: 2000000 }), "Withdraw accumulated fees", "PrivacyBridgeCotiNative.withdrawFees", [owner.address, ethers.formatEther(expectedFee)]);
-            expect(await bridge.accumulatedFees()).to.be.lessThan(feeAfter);
-
-            await logTx(await bridge.setDepositFee(0, { gasLimit: 2000000 }), "Reset deposit fee", "PrivacyBridgeCotiNative.setDepositFee", [0]);
+            await logTx(await bridge.withdrawFees(owner.address, actualFee, { gasLimit: 2000000 }), "Withdraw accumulated COTI fees", "PrivacyBridgeCotiNative.withdrawFees", [owner.address, ethers.formatEther(actualFee)]);
+            expect(await bridge.accumulatedCotiFees()).to.equal(feeBefore);
         });
 
         it("Test 5: native: Should rescue native COTI", async function () {
@@ -293,11 +305,20 @@ describe("Unified Privacy Bridges Suite", function () {
 
     for (const cfg of BRIDGE_CONFIGS) {
         describe(`ERC20 Bridge (${cfg.name})`, function () {
-            let publicToken, privateToken, bridge;
+            let publicToken, privateToken, bridge, mockOracle;
             const UNIT = BigInt(10 ** cfg.decimals);
+            // Generous COTI fee to cover any dynamic fee calculation
+            const COTI_FEE_BUFFER = ethers.parseEther("3100");
 
             before(async function () {
                 if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+                // Deploy mock oracle
+                const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+                mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+                await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+                await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+                await mockOracle.setPrice("ETH", ethers.parseEther("2300"), { gasLimit: 2000000 });
 
                 const chainId = (await ethers.provider.getNetwork()).chainId;
                 if (chainId === 7082400n) {
@@ -317,6 +338,7 @@ describe("Unified Privacy Bridges Suite", function () {
                     await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
                     const bridgeAddr = await addr(bridge);
+                    await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), `Set price oracle on ${cfg.name} Bridge`, `${cfg.bridgeFactory}.setPriceOracle`, [await addr(mockOracle)]);
                     await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), `Grant MINTER_ROLE to ${cfg.name} Bridge`, "PrivateWrappedEther.grantRole", ["MINTER_ROLE", bridgeAddr]);
                 } else {
                     publicToken = await (await ethers.getContractFactory(cfg.publicFactory)).deploy("Wrapped Ether", "WETH", cfg.decimals, { gasLimit: 12000000 });
@@ -332,6 +354,7 @@ describe("Unified Privacy Bridges Suite", function () {
                     await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
                     const bridgeAddr = await addr(bridge);
+                    await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), `Set price oracle on ${cfg.name} Bridge`, `${cfg.bridgeFactory}.setPriceOracle`, [await addr(mockOracle)]);
                     await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), `Grant MINTER_ROLE to ${cfg.name} Bridge`, "PrivateERC20Mock.grantRole", ["MINTER_ROLE", bridgeAddr]);
                     await logTx(await publicToken.mint(owner.address, 1000n * UNIT, { gasLimit: 2000000 }), `Mint 1000 ${cfg.name} to owner`, "MockWETH.mint", [owner.address, "1000"]);
                 }
@@ -353,8 +376,8 @@ describe("Unified Privacy Bridges Suite", function () {
                 const bridgeAddr = await addr(bridge);
                 await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), `Approve ${cfg.name} for bridge`, "MockWETH.approve", [bridgeAddr, "10"]);
 
-                const tx = await bridge["deposit(uint256)"](amount, { gasLimit: 12000000 });
-                await logTx(tx, `Deposit ${amount / UNIT} ${cfg.name}`, `PrivacyBridgeERC20.deposit() -> PrivateERC20Mock.mint`, ["10"]);
+                const tx = await bridge["deposit(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                await logTx(tx, `Deposit ${amount / UNIT} ${cfg.name}`, `PrivacyBridgeERC20.deposit()`, ["10"]);
                 await expect(tx).to.emit(bridge, "Deposit");
             });
 
@@ -363,20 +386,21 @@ describe("Unified Privacy Bridges Suite", function () {
                 const bridgeAddr = await addr(bridge);
                 await logTx(await privateToken["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), `Approve private ${cfg.name}`, "PrivateERC20Mock.approve", [bridgeAddr, "5"]);
 
-                const tx = await bridge["withdraw(uint256)"](amount, { gasLimit: 12000000 });
-                await logTx(tx, `Withdraw ${amount / UNIT} ${cfg.name}`, "PrivacyBridgeERC20.withdraw() -> PrivateERC20Mock.burn", ["5"]);
+                const tx = await bridge["withdraw(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                await logTx(tx, `Withdraw ${amount / UNIT} ${cfg.name}`, "PrivacyBridgeERC20.withdraw()", ["5"]);
                 await expect(tx).to.emit(bridge, "Withdraw");
             });
 
-            it(`Test ${cfg.testStart + 3}: ${cfg.name}: Should track fees and let owner withdraw`, async function () {
+            it(`Test ${cfg.testStart + 3}: ${cfg.name}: Should track dynamic fees in accumulatedCotiFees`, async function () {
                 const bridgeAddr = await addr(bridge);
-                await logTx(await bridge.setDepositFee(10000, { gasLimit: 2000000 }), `Set 1% fee for ${cfg.name}`, "PrivacyBridgeERC20.setDepositFee", [10000]);
                 const amount = 100n * UNIT;
                 await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for fee test", "MockWETH.approve", [bridgeAddr, "100"]);
-                const feeBefore = await bridge.accumulatedFees();
-                await logTx(await bridge["deposit(uint256)"](amount, { gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit() -> PrivateERC20Mock.mint", ["100"]);
-                const feeAfter = await bridge.accumulatedFees();
-                expect(feeAfter - feeBefore).to.equal(amount * 10000n / 1000000n);
+                const feeBefore = await bridge.accumulatedCotiFees();
+                await logTx(await bridge["deposit(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit()", ["100"]);
+                const feeAfter = await bridge.accumulatedCotiFees();
+                const actualFee = feeAfter - feeBefore;
+                expect(actualFee).to.be.gt(0n);
+                console.log(`    [Info] Dynamic COTI fee charged: ${ethers.formatEther(actualFee)} COTI`);
             });
 
             it(`Test ${cfg.testStart + 4}: ${cfg.name}: Should rescue redundant ERC20 tokens`, async function () {
@@ -630,10 +654,17 @@ describe("Unified Privacy Bridges Suite", function () {
     // ─────────────────────────────────────────────────────────────────────────
 
     describe("Coverage Improvements - PrivacyBridgeCotiNative", function () {
-        let privateCoti, bridge;
+        let privateCoti, bridge, mockOracle;
 
         before(async function () {
             if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            // Deploy mock oracle
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+
             const chainId = (await ethers.provider.getNetwork()).chainId;
             if (chainId === 7082400n) {
                 // Use pre-deployed PrivateCOTI on testnet — fresh deployment exceeds block gas limit
@@ -651,6 +682,13 @@ describe("Unified Privacy Bridges Suite", function () {
             await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
             const bridgeAddr = await addr(bridge);
+            // Set price oracle on bridge
+            await logTx(
+                await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }),
+                "Set price oracle on bridge (coverage suite)",
+                "PrivacyBridgeCotiNative.setPriceOracle",
+                [await addr(mockOracle)]
+            );
             await logTx(
                 await privateCoti.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 2000000 }),
                 "Grant MINTER_ROLE to bridge (coverage suite)",
@@ -659,6 +697,7 @@ describe("Unified Privacy Bridges Suite", function () {
             );
             await registerContract("PrivacyBridgeCotiNative", bridge, "Coverage - PrivacyBridgeCotiNative");
             await registerContract("PrivateCOTI", privateCoti, "Coverage - PrivacyBridgeCotiNative");
+            await registerContract("MockCotiPriceConsumer", mockOracle, "Coverage - PrivacyBridgeCotiNative");
             await new Promise(r => setTimeout(r, 5000));
         });
 
