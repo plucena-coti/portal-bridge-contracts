@@ -32,7 +32,7 @@ function flattenAndClean(solPath) {
     const raw = execSync(
         `node ./node_modules/.bin/hardhat flatten ${solPath}`,
         {
-            cwd: path.resolve(__dirname, "../../coti-contracts"),
+            cwd: path.resolve(__dirname, "../coti-contracts"),
             encoding: "utf8",
             maxBuffer: 50 * 1024 * 1024,
             stdio: ["inherit", "pipe", "inherit"],

@@ -71,7 +71,7 @@ if (contractAddresses && contractAddresses.length > 0) {
     lines.push("| Contract | Address |");
     lines.push("|----------|---------|");
     for (const ca of contractAddresses) {
-        lines.push(`| ${ca.name || ca.contract} | \`${ca.address}\` |`);
+        lines.push(`| ${ca.contractName || ca.name || ca.contract || "Unknown"} | \`${ca.address}\` |`);
     }
     lines.push("");
 }
