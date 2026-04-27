@@ -244,7 +244,11 @@ describe("Unified Privacy Bridges Suite", function () {
             const bridgeAddr = await addr(bridge);
             const initialBalance = await ethers.provider.getBalance(bridgeAddr);
 
-            const tx = await bridge.connect(user1)["deposit()"]({ value: amount, gasLimit: 12000000 });
+            // Estimate fee and get oracle timestamp
+            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+
+            const tx = await bridge.connect(user1)["deposit(uint256)"](blockTimestamp, { value: amount, gasLimit: 12000000 });
             await logTx(tx, `Deposit ${ethers.formatEther(amount)} Native COTI`, "PrivacyBridgeCotiNative.deposit() -> PrivateERC20Mock.mint", [ethers.formatEther(amount)]);
 
             await expect(tx).to.emit(bridge, "Deposit");
@@ -257,7 +261,11 @@ describe("Unified Privacy Bridges Suite", function () {
 
             await logTx(await privateCoti.connect(user1)["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve private COTI for withdrawal", "PrivateERC20Mock.approve", [bridgeAddr, ethers.formatEther(amount)]);
 
-            const tx = await bridge.connect(user1)["withdraw(uint256)"](amount, { gasLimit: 12000000 });
+            // Estimate fee and get oracle timestamp
+            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
+            console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+
+            const tx = await bridge.connect(user1)["withdraw(uint256,uint256)"](amount, blockTimestamp, { gasLimit: 12000000 });
             await logTx(tx, `Withdraw ${ethers.formatEther(amount)} Native COTI`, "PrivacyBridgeCotiNative.withdraw() -> PrivateERC20Mock.burn", [ethers.formatEther(amount)]);
 
             await expect(tx).to.emit(bridge, "Withdraw");
@@ -272,7 +280,12 @@ describe("Unified Privacy Bridges Suite", function () {
             const gross = ethers.parseEther("100");
 
             const feeBefore = await bridge.accumulatedCotiFees();
-            await logTx(await bridge["deposit()"]({ value: gross, gasLimit: 12000000 }), "Deposit for dynamic fee accumulation", "PrivacyBridgeCotiNative.deposit()", [ethers.formatEther(gross)]);
+            
+            // Estimate fee and get oracle timestamp
+            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(gross);
+            console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+            
+            await logTx(await bridge["deposit(uint256)"](blockTimestamp, { value: gross, gasLimit: 12000000 }), "Deposit for dynamic fee accumulation", "PrivacyBridgeCotiNative.deposit()", [ethers.formatEther(gross)]);
 
             const feeAfter = await bridge.accumulatedCotiFees();
             const actualFee = feeAfter - feeBefore;
@@ -376,7 +389,11 @@ describe("Unified Privacy Bridges Suite", function () {
                 const bridgeAddr = await addr(bridge);
                 await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), `Approve ${cfg.name} for bridge`, "MockWETH.approve", [bridgeAddr, "10"]);
 
-                const tx = await bridge["deposit(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                // Estimate fee and get oracle timestamp
+                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+                console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+
+                const tx = await bridge["deposit(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
                 await logTx(tx, `Deposit ${amount / UNIT} ${cfg.name}`, `PrivacyBridgeERC20.deposit()`, ["10"]);
                 await expect(tx).to.emit(bridge, "Deposit");
             });
@@ -386,7 +403,11 @@ describe("Unified Privacy Bridges Suite", function () {
                 const bridgeAddr = await addr(bridge);
                 await logTx(await privateToken["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), `Approve private ${cfg.name}`, "PrivateERC20Mock.approve", [bridgeAddr, "5"]);
 
-                const tx = await bridge["withdraw(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                // Estimate fee and get oracle timestamp
+                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
+                console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+
+                const tx = await bridge["withdraw(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
                 await logTx(tx, `Withdraw ${amount / UNIT} ${cfg.name}`, "PrivacyBridgeERC20.withdraw()", ["5"]);
                 await expect(tx).to.emit(bridge, "Withdraw");
             });
@@ -396,7 +417,12 @@ describe("Unified Privacy Bridges Suite", function () {
                 const amount = 100n * UNIT;
                 await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for fee test", "MockWETH.approve", [bridgeAddr, "100"]);
                 const feeBefore = await bridge.accumulatedCotiFees();
-                await logTx(await bridge["deposit(uint256)"](amount, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit()", ["100"]);
+                
+                // Estimate fee and get oracle timestamp
+                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+                console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
+                
+                await logTx(await bridge["deposit(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit()", ["100"]);
                 const feeAfter = await bridge.accumulatedCotiFees();
                 const actualFee = feeAfter - feeBefore;
                 expect(actualFee).to.be.gt(0n);
