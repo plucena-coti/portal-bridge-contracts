@@ -29,15 +29,18 @@ const CONTRACTS = [
 ];
 
 function flattenAndClean(solPath) {
-    const raw = execSync(
-        `node ./node_modules/.bin/hardhat flatten ${solPath}`,
+    const tmpFile = path.resolve(__dirname, "temp_flat.sol");
+    execSync(
+        `node ./node_modules/.bin/hardhat flatten ${solPath} > ${tmpFile}`,
         {
             cwd: path.resolve(__dirname, "../coti-contracts"),
-            encoding: "utf8",
             maxBuffer: 50 * 1024 * 1024,
-            stdio: ["inherit", "pipe", "inherit"],
+            stdio: "inherit",
         }
     );
+
+    const raw = fs.readFileSync(tmpFile, "utf8");
+    fs.unlinkSync(tmpFile);
 
     const lines = raw.split("\n").filter(line => !line.startsWith("[dotenv"));
 

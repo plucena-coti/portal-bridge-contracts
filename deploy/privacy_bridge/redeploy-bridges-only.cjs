@@ -22,7 +22,7 @@ const CHAIN_IDS = {
 
 // CotiPriceConsumer deployed addresses per network
 const PRICE_ORACLE = {
-    7082400: "0xAC89a381E84fbd5B3B536a3b895eB2aDdaDC36A1", // testnet
+    7082400: "0xD5EeD24e909AdE249b688671e32dcc013B236B74", // testnet
     2632500: "",                                              // mainnet — set when deployed
 };
 
