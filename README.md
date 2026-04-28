@@ -86,21 +86,15 @@ npx hardhat run scripts/set-oracle.cjs --network cotiTestnet
 > ⚠️ **Before running any script make sure PUBLIC token addresses are correct on /deploy/privacy_bridge/config.ts**
 
 
-### 3a. Redeploy private tokens + bridges (full redeploy)
 
-```bash
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiMainnet
-```
-
-### 3b. Redeploy private tokens first
+### 3a. Redeploy private tokens first
 
 ```bash
 npx hardhat run deploy/privacy_bridge/redeploy-private-tokens-only.cjs --network cotiTestnet
 npx hardhat run deploy/privacy_bridge/redeploy-private-tokens-only.cjs --network cotiMainnet
 ```
 
-### 3c. Redeploy bridges only (reuse existing private tokens)
+### 3b. Redeploy bridges only (reuse existing private tokens)
 
 Use this when only bridge contracts have changed. Reuses existing public and private token addresses.
 
@@ -108,6 +102,14 @@ Use this when only bridge contracts have changed. Reuses existing public and pri
 npx hardhat run deploy/privacy_bridge/redeploy-bridges-only.cjs --network cotiTestnet
 npx hardhat run deploy/privacy_bridge/redeploy-bridges-only.cjs --network cotiMainnet
 ```
+
+### 3c. Redeploy private tokens + bridges (full redeploy)
+
+```bash
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiMainnet
+```
+
 
 All scripts update `/deploy/privacy_bridge/config.ts` and `docs/config.ts` automatically.
 

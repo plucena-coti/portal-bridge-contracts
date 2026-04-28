@@ -30,10 +30,11 @@ export const CONTRACT_ADDRESSES = {
     PrivacyBridgegCOTI: "0x4229d44fc057a70CC46d709008A6938A6fd63a67"
   },
   
-  2632500: {
+    // COTI Mainnet
+    2632500: {
     // Native
-    PrivateCoti: "0x143705349957A236d74e0aDb5673F880fEDB101f",
-    PrivacyBridgeCotiNative: "0x6056bFE6776df4bEa7235A19f6D672089b4cdBeB",
+    PrivateCoti: "",
+    PrivacyBridgeCotiNative: "",
 
     // Public Tokens
     WETH: "0x639aCc80569c5FC83c6FBf2319A6Cc38bBfe26d1",

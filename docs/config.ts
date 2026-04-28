@@ -30,10 +30,11 @@ export const CONTRACT_ADDRESSES = {
     PrivacyBridgegCOTI: "0x4229d44fc057a70CC46d709008A6938A6fd63a67"
   },
   
-  2632500: {
+    // COTI Mainnet
+    2632500: {
     // Native
-    PrivateCoti: "0x143705349957A236d74e0aDb5673F880fEDB101f",
-    PrivacyBridgeCotiNative: "0x6056bFE6776df4bEa7235A19f6D672089b4cdBeB",
+    PrivateCoti: "0xE4D2D9379df49cc6628Ce27134b924D695E8adAe",
+    PrivacyBridgeCotiNative: "0xE736Cf6123dFf5d064Bb575C676290a0133652d0",
 
     // Public Tokens
     WETH: "0x639aCc80569c5FC83c6FBf2319A6Cc38bBfe26d1",
@@ -44,20 +45,20 @@ export const CONTRACT_ADDRESSES = {
     gCOTI: "0x7637C7838EC4Ec6b85080F28A678F8E234bB83D1",
 
     // Private Tokens
-    "p.WETH": "",
-    "p.WBTC": "",
-    "p.USDT": "",
-    "p.USDC_E": "",
-    "p.WADA": "",
-    "p.gCOTI": "",
+    "p.WETH": "0x32a2DC0a159f1Da93a73A7E7e006Eea96Feb8668",
+    "p.WBTC": "0x68Dd530D0D6E6f1d993F3F09BC5794FE22943e24",
+    "p.USDT": "0xb87d31Bf3a654685e947f7F03bf9438605858eb2",
+    "p.USDC_E": "0x784591bbc64fb624c24429F7dc9707a2ba2dfF15",
+    "p.WADA": "0xdF522E96CD96189dFD419049C847101E2B56FbdC",
+    "p.gCOTI": "0x7f1d93C3820325Eb182bCf3170B32d4d8Ca753b7",
 
     // Bridges
-    PrivacyBridgeWETH: "",
-    PrivacyBridgeWBTC: "",
-    PrivacyBridgeUSDT: "",
-    PrivacyBridgeUSDCe: "",
-    PrivacyBridgeWADA: "",
-    PrivacyBridgegCOTI: ""
+    PrivacyBridgeWETH: "0xc5D8a25fe5063C8D12cF07684994635294F40F5c",
+    PrivacyBridgeWBTC: "0x65976d76bD765c70b92568a8436a76789A097bEe",
+    PrivacyBridgeUSDT: "0xf1c0ec7faC14c99CFeb18713A671C4cA882C816F",
+    PrivacyBridgeUSDCe: "0xf33DF5312DF736362395468a2D083d16Ded006d3",
+    PrivacyBridgeWADA: "0xB495912771F6F4A77412Af32b9924D06b33890E4",
+    PrivacyBridgegCOTI: "0x8d544420a28B6c847E7C8f2815a0a2d336960508"
   }
 };
 
