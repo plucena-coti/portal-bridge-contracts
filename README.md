@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges, and how to update the frontend UI configuration to use the new contract addresses.
+This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Privacy Bridges, and how to update the frontend UI configuration to use the new contract addresses. It uses contracts from https://github.com/coti-io/coti-contracts/ that should be added to the project as instructions bellow.
 
 ---
 
@@ -33,8 +33,20 @@ PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
 The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target network to cover gas. Deploying the full suite (7 private tokens + 7 bridges + role grants)
 
 
+### 1.3 Clone contracts repo
 
----
+
+From the project root folder run:
+
+```bash
+# 1. Clone contracts repo
+git clone -b development https://github.com/coti-io/coti-contracts.git 
+
+# 2. Compile contracts
+npx hardhat compile
+```
+
+
 
 ## 2. Deploy CotiPriceConsumer (Oracle)
 
@@ -59,7 +71,7 @@ After deploying, update the oracle address in `deploy/privacy_bridge/redeploy-br
 | Testnet | `0xb6256DCb23CEE06eDa2408E73945963606fdddd7` | 3600s (1 hour) |
 | Mainnet | `0x9503d502435f8e228b874Ba0F792301d4401b523` | 3600s (1 hour) |
 
-To update the oracle on already-deployed bridges without redeploying them:
+> ⚠️ ** To update the oracle on already-deployed bridges without redeploying them:**
 
 ```bash
 # Edit the oracle address in scripts/set-oracle.cjs, then:
@@ -68,28 +80,36 @@ npx hardhat run scripts/set-oracle.cjs --network cotiTestnet
 
 ---
 
-## 3.  How to Run the Deployment Script
+## 3.  How to Run the Deployment Scripts
 
 
-> ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
+> ⚠️ **Before running any script make sure PUBLIC token addresses are correct on /deploy/privacy_bridge/config.ts**
 
-From the project root folder run:
+
+### 3a. Redeploy private tokens + bridges (full redeploy)
 
 ```bash
-# 1.Clone contracts repo
-git clone -b development https://github.com/coti-io/coti-contracts.git 
-
-# 2. Compile contracts
-npx hardhat compile
-
-# 3. Run the Deployment Script  
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet   OR
-
-npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network  cotiMainnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-and-bridges.cjs --network cotiMainnet
 ```
 
-This script reuses the existing public token addresses and  redeploys `p.tokens` and bridges, then updates `/deploy/privacy_bridge/config.ts` configuration file.
-This configuration file should be copied and commited to UI project as instructions bellow
+### 3b. Redeploy private tokens first
+
+```bash
+npx hardhat run deploy/privacy_bridge/redeploy-private-tokens-only.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-private-tokens-only.cjs --network cotiMainnet
+```
+
+### 3c. Redeploy bridges only (reuse existing private tokens)
+
+Use this when only bridge contracts have changed. Reuses existing public and private token addresses.
+
+```bash
+npx hardhat run deploy/privacy_bridge/redeploy-bridges-only.cjs --network cotiTestnet
+npx hardhat run deploy/privacy_bridge/redeploy-bridges-only.cjs --network cotiMainnet
+```
+
+All scripts update `/deploy/privacy_bridge/config.ts` and `docs/config.ts` automatically.
 
 
 
