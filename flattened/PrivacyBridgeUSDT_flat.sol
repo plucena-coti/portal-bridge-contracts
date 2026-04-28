@@ -1741,13 +1741,9 @@ abstract contract ReentrancyGuard {
 }
 
 
-// File contracts/privacyBridge/PrivacyBridge.sol
+// File contracts/oracle/ICotiPriceConsumer.sol
 
 // Original license: SPDX_License_Identifier: MIT
-
-
-
-
 
 /**
  * @title ICotiPriceConsumer
@@ -1759,7 +1755,20 @@ interface ICotiPriceConsumer {
 
     /// @notice Returns the rate for an arbitrary base/USD pair scaled by 1e18.
     function getPrice(string calldata _base) external view returns (uint256);
+
+    /// @notice Returns rate + staleness metadata for any base/USD pair.
+    function getPriceWithMeta(string calldata _base) external view returns (uint256 rate, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp);
 }
+
+
+// File contracts/privacyBridge/PrivacyBridge.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+
+
+
+
 
 /**
  * @title PrivacyBridge
@@ -1815,6 +1824,11 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
     /// @notice Fee in native COTI for bridge operations
     uint256 public nativeCotiFee;
 
+
+    // Privacy Bridge defines default Fees
+    // those fees can be overwritten using
+    // setDepositDynamicFee available for OPERATORS and ADMIN
+
     /// @notice Deposit fee floor in COTI wei
     uint256 public depositFixedFee = 10 ether;
 
@@ -1833,6 +1847,8 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
     /// @notice Withdraw fee cap in COTI wei
     uint256 public withdrawMaxFee = 1500 ether;
 
+    // --- END OF DEFAULT FEES
+
     /// @notice CotiPriceConsumer contract address
     address public priceOracle;
 
@@ -1843,6 +1859,7 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
     error DepositDisabled();
     error InsufficientCotiFee();
     error BridgePaused();
+    error OracleTimestampMismatch(uint256 expected, uint256 actual);
 
     // Limits errors
     error InvalidLimitConfiguration();
@@ -2042,6 +2059,17 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
     }
 
     /**
+     * @notice Validate that the oracle's lastUpdated timestamp matches the caller's expectation.
+     * @dev Reverts with {OracleTimestampMismatch} if the oracle data has been refreshed since
+     *      the user called estimateDepositFee / estimateWithdrawFee.
+     * @param expectedTimestamp The lastUpdated value the caller received from the estimate call.
+     */
+    function _validateOracleTimestamp(uint256 expectedTimestamp) internal view {
+        (, uint256 lastUpdated,,) = ICotiPriceConsumer(priceOracle).getPriceWithMeta("COTI");
+        if (lastUpdated != expectedTimestamp) revert OracleTimestampMismatch(expectedTimestamp, lastUpdated);
+    }
+
+    /**
      * @notice Calculate the dynamic fee using the floor/cap formula
      * @param percentageFeeCoti The percentage-based fee component in COTI
      * @param fixedFee The minimum fee floor in COTI
@@ -2056,6 +2084,28 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
         uint256 fee = percentageFeeCoti > fixedFee ? percentageFeeCoti : fixedFee;
         return fee > maxFee ? maxFee : fee;
     }
+
+    /**
+     * @notice Estimate the deposit fee for a given amount
+     * @param amount The amount to estimate the deposit fee for
+     * @return fee           The estimated fee in native COTI (18 decimals)
+     * @return lastUpdated   Oracle data last update timestamp
+     * @return threshold     Staleness cutoff timestamp (0 if disabled)
+     * @return blockTimestamp Current block.timestamp
+     * @dev Must be overridden by derived contracts (Native and ERC20 bridges).
+     */
+    function estimateDepositFee(uint256 amount) external view virtual returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp);
+
+    /**
+     * @notice Estimate the withdrawal fee for a given amount
+     * @param amount The amount to estimate the withdrawal fee for
+     * @return fee           The estimated fee in native COTI (18 decimals)
+     * @return lastUpdated   Oracle data last update timestamp
+     * @return threshold     Staleness cutoff timestamp (0 if disabled)
+     * @return blockTimestamp Current block.timestamp
+     * @dev Must be overridden by derived contracts (Native and ERC20 bridges).
+     */
+    function estimateWithdrawFee(uint256 amount) external view virtual returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp);
 
     /**
      * @notice Set the deposit dynamic fee parameters
@@ -2153,7 +2203,7 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
     function withdrawFees(
         address to,
         uint256 amount
-    ) external virtual onlyOperator {
+    ) external virtual onlyOwner {
         if (to == address(0)) revert InvalidAddress();
         if (amount == 0) revert AmountZero();
         if (amount > accumulatedFees) revert InsufficientAccumulatedFees();
@@ -2169,7 +2219,7 @@ abstract contract PrivacyBridge is ReentrancyGuard, Pausable, Ownable, AccessCon
      * @dev Only the operator can call this function. Derived ERC20 bridges use this inherited implementation to withdraw
      *      accumulated native COTI fees; native bridge does not use this (accumulatedCotiFees remains 0).
      */
-    function withdrawCotiFees(address to, uint256 amount) external onlyOperator nonReentrant {
+    function withdrawCotiFees(address to, uint256 amount) external onlyOwner nonReentrant {
         if (to == address(0)) revert InvalidAddress();
         if (amount == 0) revert AmountZero();
         if (amount > accumulatedCotiFees) revert InsufficientAccumulatedFees();
@@ -16732,6 +16782,32 @@ abstract contract PrivacyBridgeERC20 is PrivacyBridge {
     }
 
     /**
+     * @notice Estimate the deposit fee in COTI for a given token amount
+     * @param tokenAmount The amount of ERC20 tokens to deposit
+     * @return fee           The estimated fee in native COTI (18 decimals)
+     * @return lastUpdated   Oracle data last update timestamp
+     * @return threshold     Staleness cutoff timestamp (0 if disabled)
+     * @return blockTimestamp Current block.timestamp
+     */
+    function estimateDepositFee(uint256 tokenAmount) external view override returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp) {
+        fee = _computeErc20Fee(tokenAmount, depositFixedFee, depositPercentageBps, depositMaxFee);
+        (,lastUpdated, threshold, blockTimestamp) = ICotiPriceConsumer(priceOracle).getPriceWithMeta("COTI");
+    }
+
+    /**
+     * @notice Estimate the withdrawal fee in COTI for a given token amount
+     * @param tokenAmount The amount of ERC20 tokens to withdraw
+     * @return fee           The estimated fee in native COTI (18 decimals)
+     * @return lastUpdated   Oracle data last update timestamp
+     * @return threshold     Staleness cutoff timestamp (0 if disabled)
+     * @return blockTimestamp Current block.timestamp
+     */
+    function estimateWithdrawFee(uint256 tokenAmount) external view override returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp) {
+        fee = _computeErc20Fee(tokenAmount, withdrawFixedFee, withdrawPercentageBps, withdrawMaxFee);
+        (,lastUpdated, threshold, blockTimestamp) = ICotiPriceConsumer(priceOracle).getPriceWithMeta("COTI");
+    }
+
+    /**
      * @notice Collect the dynamic native COTI fee from msg.value and refund any excess
      * @param fee The computed fee in native COTI
      * @dev Reverts with {InsufficientCotiFee} if msg.value < fee.
@@ -16772,20 +16848,24 @@ abstract contract PrivacyBridgeERC20 is PrivacyBridge {
     /**
      * @notice Deposit public ERC20 tokens to receive equivalent private tokens
      * @param amount Amount of public ERC20 tokens to deposit
-     * @dev Native COTI fee: send msg.value >= nativeCotiFee. Excess is refunded best-effort;
+     * @param oracleTimestamp The oracle lastUpdated timestamp from estimateDepositFee (ensures fee hasn't changed)
+     * @dev Native COTI fee: send msg.value >= computed fee. Excess is refunded best-effort;
      *      if refund fails (e.g. sender cannot receive native token), excess remains in the contract and deposit still succeeds.
-     *      Send exactly nativeCotiFee or ensure sender can receive native token to avoid leaving excess in the contract.
      */
     function deposit(
-        uint256 amount
+        uint256 amount,
+        uint256 oracleTimestamp
     ) external payable nonReentrant whenNotPaused {
-        _deposit(amount);
+        _deposit(amount, oracleTimestamp);
     }
 
-    function _deposit(uint256 amount) internal {
+    function _deposit(uint256 amount, uint256 oracleTimestamp) internal {
         if (!isDepositEnabled) revert DepositDisabled();
         if (amount == 0) revert AmountZero();
+        if (IHasDecimals(address(token)).decimals() != IHasDecimals(address(privateToken)).decimals())
+            revert DecimalsMismatch();
         _checkDepositLimits(amount);
+        _validateOracleTimestamp(oracleTimestamp);
 
         // Step 1: compute dynamic fee in COTI
         uint256 fee = _computeErc20Fee(amount, depositFixedFee, depositPercentageBps, depositMaxFee);
@@ -16807,17 +16887,22 @@ abstract contract PrivacyBridgeERC20 is PrivacyBridge {
     /**
      * @notice Withdraw public ERC20 tokens by burning private tokens
      * @param amount Amount of private tokens to burn
-     * @dev Requires prior approval on the private token. Native COTI fee: send msg.value >= nativeCotiFee; excess refunded best-effort (see deposit).
+     * @param oracleTimestamp The oracle lastUpdated timestamp from estimateWithdrawFee (ensures fee hasn't changed)
+     * @dev Requires prior approval on the private token. Native COTI fee: send msg.value >= computed fee; excess refunded best-effort.
      */
     function withdraw(
-        uint256 amount
+        uint256 amount,
+        uint256 oracleTimestamp
     ) external payable nonReentrant whenNotPaused {
-        _withdraw(amount);
+        _withdraw(amount, oracleTimestamp);
     }
 
-    function _withdraw(uint256 amount) internal {
+    function _withdraw(uint256 amount, uint256 oracleTimestamp) internal {
         if (amount == 0) revert AmountZero();
+        if (IHasDecimals(address(token)).decimals() != IHasDecimals(address(privateToken)).decimals())
+            revert DecimalsMismatch();
         _checkWithdrawLimits(amount);
+        _validateOracleTimestamp(oracleTimestamp);
 
         // Step 1: compute dynamic fee in COTI
         uint256 fee = _computeErc20Fee(amount, withdrawFixedFee, withdrawPercentageBps, withdrawMaxFee);
@@ -16848,7 +16933,7 @@ abstract contract PrivacyBridgeERC20 is PrivacyBridge {
     function withdrawFees(
         address,
         uint256
-    ) external override onlyOperator nonReentrant {
+    ) external override onlyOwner nonReentrant {
         revert WithdrawFeesMustBeOverridden();
     }
 

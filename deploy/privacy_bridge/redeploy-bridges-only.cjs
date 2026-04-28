@@ -23,7 +23,7 @@ const CHAIN_IDS = {
 // CotiPriceConsumer deployed addresses per network
 const PRICE_ORACLE = {
     7082400: "0xD5EeD24e909AdE249b688671e32dcc013B236B74", // testnet
-    2632500: "",                                              // mainnet — set when deployed
+    2632500: "0xb2Ef3da8a6CFA06e367379F566CFb3db7619DE54",                                              // mainnet — set when deployed
 };
 
 const CONFIG_PATH = path.resolve(__dirname, "config.ts");

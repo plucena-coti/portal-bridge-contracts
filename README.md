@@ -36,7 +36,39 @@ The deployer wallet (`PRIVATE_KEY`) must have enough native COTI on the target n
 
 ---
 
-## 2.  How to Run the Deployment Script
+## 2. Deploy CotiPriceConsumer (Oracle)
+
+The privacy bridges require a `CotiPriceConsumer` oracle contract to compute dynamic fees. This must be deployed **before** deploying or redeploying bridges.
+
+The oracle queries Band Protocol for token/USD prices and enforces a minimum staleness of 1 hour.
+
+```bash
+# Testnet
+npx hardhat run deploy/oracle/deploy-coti-price-consumer.cjs --network cotiTestnet
+
+# Mainnet (uses RICK_PK from .env)
+npx hardhat run deploy/oracle/deploy-coti-price-consumer-mainnet.cjs --network cotiMainnet
+```
+
+The script will output the deployed oracle address and a sanity COTI/USD price read. Save this address — you'll need it in the next step.
+
+After deploying, update the oracle address in `deploy/privacy_bridge/redeploy-bridges-only.cjs` under the `PRICE_ORACLE` object for the target network. The bridge deploy script will automatically call `setPriceOracle` on each bridge.
+
+| Network | Band Protocol Proxy | maxStaleness |
+|---------|-------------------|--------------|
+| Testnet | `0xb6256DCb23CEE06eDa2408E73945963606fdddd7` | 3600s (1 hour) |
+| Mainnet | `0x9503d502435f8e228b874Ba0F792301d4401b523` | 3600s (1 hour) |
+
+To update the oracle on already-deployed bridges without redeploying them:
+
+```bash
+# Edit the oracle address in scripts/set-oracle.cjs, then:
+npx hardhat run scripts/set-oracle.cjs --network cotiTestnet
+```
+
+---
+
+## 3.  How to Run the Deployment Script
 
 
 > ⚠️ **Before running the script make sure public token addresses are correct on /deploy/privacy_bridge/config.ts**
@@ -61,7 +93,7 @@ This configuration file should be copied and commited to UI project as instructi
 
 
 
-## 3.  How to Update UI for new contract addresses
+## 4.  How to Update UI for new contract addresses
 
  ---
 1. Verify the config file was updated
@@ -75,7 +107,7 @@ git diff /deploy/privacy_bridge/config.ts
 4. commit your changes to coti-privacy-portal repo appropriate branch
 
 
-## 4. Verify contracts
+## 5. Verify contracts
 
 
 ```bash
@@ -85,7 +117,7 @@ npx hardhat run admin/generate_all_flattened_and_json.cjs
 > ⚠️ Use flatened jsons to verify contracts on cotiscan.  API JSON upload, seems to be disabled so you need to verify and upload JSONs individually.  You can see full contract list  online at /backoffice URL
 
 
-## 5. Test Contracts
+## 6. Test Contracts
 
 Tests run against the live COTI Testnet and require `PRIVATE_KEY` (and `PRIVATE_AES_KEY_TESTNET` for encrypted deposit tests) to be set in `.env`.
 

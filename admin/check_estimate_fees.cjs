@@ -5,13 +5,13 @@
 const hre = require("hardhat");
 
 const bridges = [
-  { name: "COTI Native", address: "0x863F02f14E242f8826a15cE31b753EC0e5158B94", decimals: 18, amount: "10" },
-  { name: "WETH",        address: "0x43676df2CE100EAD17B3824449D4e87a7F1f8E9c", decimals: 18, amount: "10" },
-  { name: "WBTC",        address: "0x570F6aD426332a76588E71df373185E04b85849E", decimals: 8,  amount: "10" },
-  { name: "USDT",        address: "0x06A5ad4693a3A9f371EE8374357b7Ee56f8DE583", decimals: 6,  amount: "10" },
-  { name: "USDC.e",      address: "0x3B1b7227e16c7EEe0B88FB1C746A5D05546d95C7", decimals: 6,  amount: "10" },
-  { name: "WADA",        address: "0x3DeA79Fd137dc14C6723501585422E56f67b2A40", decimals: 6,  amount: "10" },
-  { name: "gCOTI",       address: "0x24aEB1c4c3e1EDA97E45E4A78378C12bab609046", decimals: 18, amount: "10" },
+  { name: "COTI Native", address: "0x53D22f7352d2a5728Fe3BE87012B517DD73837Ab", decimals: 18, amount: "10" },
+  { name: "WETH",        address: "0x200a10077fbA0eB6619910198642C629e96ea500", decimals: 18, amount: "10" },
+  { name: "WBTC",        address: "0xDbC6138Bc2E735dE9778B52768Bbdcb25Fd2D6ee", decimals: 8,  amount: "10" },
+  { name: "USDT",        address: "0x00387B7d4027a3b242f138527CA92c8410413A2b", decimals: 6,  amount: "10" },
+  { name: "USDC.e",      address: "0xa0Ce01ce48512769F45c7C52c65BC063A8e83dE4", decimals: 6,  amount: "10" },
+  { name: "WADA",        address: "0xD07218e5DcD2b057eb98aE7A87031fE763503ea6", decimals: 6,  amount: "10" },
+  { name: "gCOTI",       address: "0x4229d44fc057a70CC46d709008A6938A6fd63a67", decimals: 18, amount: "10" },
 ];
 
 const ESTIMATE_ABI = [
