@@ -16,7 +16,7 @@ Copy `.env.example` to `.env` and set the following variables before running any
 | `PRIVATE_KEY`                 | ✅ Yes     | Private key of the deployer wallet (no`0x` prefix). This account pays all deployment gas and becomes the contract owner/admin.                                                                                                  |
 | `PRIVATE_KEY2`                | Optional   | Secondary wallet used for multi-account testing only. Not needed for deployment.                                                                                                                                                |
 | `PRIVATE_AES_KEY_TESTNET`     | Tests only | AES key for the deployer wallet on Testnet (32 hex chars, no`0x` prefix). Required to run encrypted deposit tests. Generated during COTI Snap onboarding at [dev.metamask.coti.io/wallet](https://dev.metamask.coti.io/wallet). |
-                                                                               |
+                                                                            
 
 Example `.env` for testnet deployment and testing:
 
@@ -58,7 +58,7 @@ The oracle queries Band Protocol for token/USD prices and enforces a minimum sta
 # Testnet
 npx hardhat run deploy/oracle/deploy-coti-price-consumer.cjs --network cotiTestnet
 
-# Mainnet (uses RICK_PK from .env)
+# Mainnet 
 npx hardhat run deploy/oracle/deploy-coti-price-consumer-mainnet.cjs --network cotiMainnet
 ```
 

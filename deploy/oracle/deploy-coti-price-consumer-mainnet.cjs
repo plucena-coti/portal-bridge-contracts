@@ -1,5 +1,5 @@
 /**
- * Deploy CotiPriceConsumer on COTI Mainnet using RICK_PK.
+ * Deploy CotiPriceConsumer on COTI Mainnet.
  *
  * Run with:
  *   npx hardhat compile
@@ -10,16 +10,11 @@ const hre = require("hardhat");
 // Band Protocol StdReferenceProxy on COTI Mainnet
 const BAND_REF_PROXY = "0x9503d502435f8e228b874Ba0F792301d4401b523";
 
-// Maximum staleness in seconds (1 hour). Set to 0 to disable the check.
+// Maximum staleness in seconds (1 hour).
 const MAX_STALENESS = 3600;
 
 async function main() {
-    const rickPk = process.env.RICK_PK;
-    if (!rickPk) {
-        throw new Error("RICK_PK not set in .env");
-    }
-
-    const deployer = new hre.ethers.Wallet(rickPk, hre.ethers.provider);
+    const [deployer] = await hre.ethers.getSigners();
     console.log("Deploying CotiPriceConsumer with account:", deployer.address);
     console.log("Network:", hre.network.name);
 
@@ -30,7 +25,7 @@ async function main() {
         throw new Error("Deployer account has no COTI — fund it first");
     }
 
-    const Factory = await hre.ethers.getContractFactory("CotiPriceConsumer", deployer);
+    const Factory = await hre.ethers.getContractFactory("CotiPriceConsumer");
     const contract = await Factory.deploy(BAND_REF_PROXY, MAX_STALENESS, { gasLimit: 5000000 });
     await contract.waitForDeployment();
 
