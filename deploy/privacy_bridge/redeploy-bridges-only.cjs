@@ -136,6 +136,14 @@ async function main() {
 
     const newBridgeAddresses = {};
 
+    // feeRecipient and rescueRecipient from .env
+    const feeRecipient = process.env.FEE_RECIPIENT;
+    const rescueRecipient = process.env.RESCUE_RECIPIENT;
+    if (!feeRecipient) throw new Error("FEE_RECIPIENT not set in .env");
+    if (!rescueRecipient) throw new Error("RESCUE_RECIPIENT not set in .env");
+    console.log(`  feeRecipient: ${feeRecipient}`);
+    console.log(`  rescueRecipient: ${rescueRecipient}`);
+
     for (const bridge of bridges) {
         process.stdout.write(`  Deploying ${bridge.name}... `);
         const Factory = await hre.ethers.getContractFactory(bridge.name);
@@ -144,10 +152,12 @@ async function main() {
             contract = await Factory.deploy(
                 existing[bridge.publicKey],
                 existing[bridge.privateKey],
+                feeRecipient,
+                rescueRecipient,
                 { gasLimit: 12000000 }
             );
         } else {
-            contract = await Factory.deploy(existing[bridge.privateKey], { gasLimit: 12000000 });
+            contract = await Factory.deploy(existing[bridge.privateKey], feeRecipient, rescueRecipient, { gasLimit: 12000000 });
         }
         await contract.waitForDeployment();
         newBridgeAddresses[bridge.bridgeKey] = await contract.getAddress();

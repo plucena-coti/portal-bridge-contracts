@@ -16,6 +16,8 @@ Copy `.env.example` to `.env` and set the following variables before running any
 | `PRIVATE_KEY`                 | ✅ Yes     | Private key of the deployer wallet (no`0x` prefix). This account pays all deployment gas and becomes the contract owner/admin.                                                                                                  |
 | `PRIVATE_KEY2`                | Optional   | Secondary wallet used for multi-account testing only. Not needed for deployment.                                                                                                                                                |
 | `PRIVATE_AES_KEY_TESTNET`     | Tests only | AES key for the deployer wallet on Testnet (32 hex chars, no`0x` prefix). Required to run encrypted deposit tests. Generated during COTI Snap onboarding at [dev.metamask.coti.io/wallet](https://dev.metamask.coti.io/wallet). |
+| `FEE_RECIPIENT`               | ✅ Yes     | Address where bridge fees are sent. Set at deploy time and cannot be changed after. |
+| `RESCUE_RECIPIENT`            | ✅ Yes     | Address where rescued funds are sent. Set at deploy time and cannot be changed after. |
                                                                             
 
 Example `.env` for testnet deployment and testing:
@@ -23,7 +25,8 @@ Example `.env` for testnet deployment and testing:
 ```env
 PRIVATE_KEY=your_deployer_private_key_without_0x_prefix
 PRIVATE_AES_KEY_TESTNET=your_32_char_aes_key_without_0x_prefix
-
+FEE_RECIPIENT=0xYourFeeRecipientAddress
+RESCUE_RECIPIENT=0xYourRescueRecipientAddress
 ```
 
 > ⚠️ Never commit your `.env` file. It is already listed in `.gitignore`.

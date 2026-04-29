@@ -102,6 +102,14 @@ async function main() {
 
     // ── 2. Redeploy Bridges ────────────────────────────────────────────────
     console.log("\n--- Redeploying Bridges ---");
+
+    const feeRecipient = process.env.FEE_RECIPIENT;
+    const rescueRecipient = process.env.RESCUE_RECIPIENT;
+    if (!feeRecipient) throw new Error("FEE_RECIPIENT not set in .env");
+    if (!rescueRecipient) throw new Error("RESCUE_RECIPIENT not set in .env");
+    console.log(`  feeRecipient: ${feeRecipient}`);
+    console.log(`  rescueRecipient: ${rescueRecipient}`);
+
     const bridges = [
         { name: "PrivacyBridgeCotiNative", publicKey: null,       privateKey: "PrivateCOTI",                         bridgeKey: "PrivacyBridgeCotiNative" },
         { name: "PrivacyBridgeWETH",       publicKey: "WETH",     privateKey: "PrivateWrappedEther",                 bridgeKey: "PrivacyBridgeWETH" },
@@ -120,10 +128,12 @@ async function main() {
             contract = await Factory.deploy(
                 newAddresses[bridge.publicKey],
                 newAddresses[bridge.privateKey],
+                feeRecipient,
+                rescueRecipient,
                 { gasLimit: 12000000 }
             );
         } else {
-            contract = await Factory.deploy(newAddresses[bridge.privateKey], { gasLimit: 12000000 });
+            contract = await Factory.deploy(newAddresses[bridge.privateKey], feeRecipient, rescueRecipient, { gasLimit: 12000000 });
         }
         await contract.waitForDeployment();
         newAddresses[bridge.bridgeKey] = await contract.getAddress();
