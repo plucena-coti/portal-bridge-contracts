@@ -15,8 +15,8 @@ const bridges = [
 ];
 
 const ESTIMATE_ABI = [
-  "function estimateDepositFee(uint256) view returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp)",
-  "function estimateWithdrawFee(uint256) view returns (uint256 fee, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp)",
+  "function estimateDepositFee(uint256) view returns (uint256 fee, uint256 lastUpdated, uint256 blockTimestamp)",
+  "function estimateWithdrawFee(uint256) view returns (uint256 fee, uint256 lastUpdated, uint256 blockTimestamp)",
   "function depositFixedFee() view returns (uint256)",
   "function depositPercentageBps() view returns (uint256)",
   "function depositMaxFee() view returns (uint256)",
@@ -40,11 +40,11 @@ async function main() {
       console.log(`  Oracle: ${oracle}`);
       console.log(`  Params: fixed=${hre.ethers.formatEther(fixedFee)} COTI, pct=${pctBps}/1000000, max=${hre.ethers.formatEther(maxFee)} COTI`);
 
-      const [fee, lastUpdated, threshold, blockTs] = await contract.estimateDepositFee(tokenAmount);
+      const [fee, lastUpdated, blockTs] = await contract.estimateDepositFee(tokenAmount);
       console.log(`  Deposit fee for ${b.amount} ${b.name}: ${hre.ethers.formatEther(fee)} COTI`);
-      console.log(`  Oracle lastUpdated: ${lastUpdated} | threshold: ${threshold} | blockTimestamp: ${blockTs}`);
+      console.log(`  Oracle lastUpdated: ${lastUpdated} | blockTimestamp: ${blockTs}`);
 
-      const [wFee, wLast, wThresh, wBlock] = await contract.estimateWithdrawFee(tokenAmount);
+      const [wFee, wLast, wBlock] = await contract.estimateWithdrawFee(tokenAmount);
       console.log(`  Withdraw fee for ${b.amount} ${b.name}: ${hre.ethers.formatEther(wFee)} COTI`);
       console.log("");
     } catch (err) {

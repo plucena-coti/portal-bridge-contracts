@@ -1,8 +1,7 @@
 const hre = require("hardhat");
 const ORACLE_ABI = [
-  "function getPriceWithMeta(string) view returns (uint256 rate, uint256 lastUpdated, uint256 threshold, uint256 blockTimestamp)",
+  "function getPriceWithMeta(string) view returns (uint256 rate, uint256 lastUpdated, uint256 blockTimestamp)",
   "function getPrice(string) view returns (uint256)",
-  "function getCotiPrice() view returns (uint256)",
   "function maxStaleness() view returns (uint256)",
 ];
 async function main() {

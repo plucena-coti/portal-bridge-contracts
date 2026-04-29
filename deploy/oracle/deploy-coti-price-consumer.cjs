@@ -27,7 +27,7 @@ async function main() {
 
     // Quick sanity read
     try {
-        const price = await contract.getCotiPrice();
+        const price = await contract.getPrice("COTI");
         console.log("   COTI/USD price (raw 1e18):", price.toString());
 
         const readable = Number(price) / 1e18;
