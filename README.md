@@ -8,7 +8,8 @@ This guide explains how to fully redeploy Private Tokens (`p.tokens`), and Priva
 
 ### 1.1 Environment Variables
 
-Copy `.env.example` to `.env` and set the following variables before running any deployment or contract tests:
+Copy `.env.example` to `.env` in the project root and set the following variables before running any deployment or contract tests.
+The `.env` file is loaded from the project root (`portal-bridge-contracts/.env`) by Hardhat via `dotenv`.
 
 
 | Variable                      | Required   | Description                                                                                                                                                                                                                     |
