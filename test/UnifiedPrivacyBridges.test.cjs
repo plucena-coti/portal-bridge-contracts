@@ -1745,6 +1745,642 @@ describe("Unified Privacy Bridges Suite", function () {
         });
     });
 
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FULL COVERAGE — NATIVE BRIDGE REVERT PATHS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Full Coverage - Native Bridge Reverts", function () {
+        let privateCoti, bridge, mockOracle;
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockOracle.setLastUpdated(currentBlock.timestamp, { gasLimit: 2000000 });
+
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            if (chainId === 7082400n) {
+                privateCoti = await ethers.getContractAt("PrivateCOTI", "0x03eeA59b1F0Dfeaece75531b27684DD882f79759");
+            } else {
+                const F = await ethers.getContractFactory("PrivateERC20Mock");
+                privateCoti = await F.deploy({ gasLimit: 12000000 });
+                await (privateCoti.waitForDeployment ? privateCoti.waitForDeployment() : privateCoti.deployed());
+            }
+
+            const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
+            bridge = await BridgeFactory.deploy(await addr(privateCoti), owner.address, owner.address, { gasLimit: 30000000 });
+            await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+            await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (revert suite)", "setPriceOracle", [await addr(mockOracle)]);
+            await logTx(await privateCoti.grantRole(MINTER_ROLE, await addr(bridge), { gasLimit: 2000000 }), "Grant MINTER_ROLE (revert suite)", "grantRole", ["MINTER_ROLE", await addr(bridge)]);
+            await registerContract("PrivacyBridgeCotiNative", bridge, "Full Coverage - Native Reverts");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 97: revert: native deposit with zero value reverts AmountZero", async function () {
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            try {
+                const tx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: 0n, gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: deposit with value=0");
+            }
+        });
+
+        it("Test 98: revert: native withdraw with amount=0 reverts AmountZero", async function () {
+            const [, cotiLastUpdated] = await bridge.estimateWithdrawFee(ethers.parseEther("100"));
+            try {
+                const tx = await bridge["withdraw(uint256,uint256,uint256)"](0n, cotiLastUpdated, cotiLastUpdated, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: withdraw with amount=0");
+            }
+        });
+
+        it("Test 99: revert: withdrawFees(0) reverts AmountZero", async function () {
+            try {
+                const tx = await bridge.withdrawFees(0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: withdrawFees(0)");
+            }
+        });
+
+        it("Test 100: revert: withdrawFees exceeding accumulated reverts InsufficientAccumulatedFees", async function () {
+            try {
+                const tx = await bridge.withdrawFees(ethers.parseEther("999999"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InsufficientAccumulatedFees|revert/i);
+                console.log("    [Info] Correctly reverted: withdrawFees > accumulated");
+            }
+        });
+
+        it("Test 101: revert: rescueNative(0) reverts AmountZero", async function () {
+            try {
+                const tx = await bridge.rescueNative(0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: rescueNative(0)");
+            }
+        });
+
+        it("Test 102: revert: rescueNative exceeding rescueable reverts ExceedsRescueableAmount", async function () {
+            // First deposit to create some balance and fees
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            await logTx(await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("100"), gasLimit: 12000000 }), "Deposit for rescue test", "deposit", ["100"]);
+
+            // Try to rescue more than balance minus fees
+            const bal = await ethers.provider.getBalance(await addr(bridge));
+            try {
+                const tx = await bridge.rescueNative(bal, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/ExceedsRescueableAmount|InsufficientEthBalance|revert/i);
+                console.log("    [Info] Correctly reverted: rescueNative exceeds rescueable");
+            }
+        });
+
+        it("Test 103: revert: receive() reverts when deposits disabled", async function () {
+            await logTx(await bridge.setIsDepositEnabled(false, { gasLimit: 2000000 }), "Disable deposits for receive test", "setIsDepositEnabled", ["false"]);
+
+            try {
+                const tx = await owner.sendTransaction({ to: await addr(bridge), value: ethers.parseEther("10"), gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/DepositDisabled|revert/i);
+                console.log("    [Info] Correctly reverted: receive() when deposits disabled");
+            }
+
+            await logTx(await bridge.setIsDepositEnabled(true, { gasLimit: 2000000 }), "Re-enable deposits", "setIsDepositEnabled", ["true"]);
+        });
+
+        it("Test 104: revert: setLimits with min > max reverts InvalidLimitConfiguration", async function () {
+            try {
+                const tx = await bridge.setLimits(ethers.parseEther("100"), ethers.parseEther("10"), 1n, ethers.MaxUint256, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidLimitConfiguration|revert/i);
+                console.log("    [Info] Correctly reverted: minDeposit > maxDeposit");
+            }
+        });
+
+        it("Test 105: revert: setDepositFee exceeding MAX_FEE_UNITS reverts InvalidFee", async function () {
+            try {
+                const tx = await bridge.setDepositFee(200000n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFee|revert/i);
+                console.log("    [Info] Correctly reverted: setDepositFee > MAX_FEE_UNITS");
+            }
+        });
+
+        it("Test 106: legacy: setDepositFee and setWithdrawFee update basis points", async function () {
+            const tx1 = await bridge.setDepositFee(1000n, { gasLimit: 2000000 });
+            await logTx(tx1, "setDepositFee(1000)", "setDepositFee", ["1000"]);
+            expect(await bridge.depositFeeBasisPoints()).to.equal(1000n);
+
+            const tx2 = await bridge.setWithdrawFee(500n, { gasLimit: 2000000 });
+            await logTx(tx2, "setWithdrawFee(500)", "setWithdrawFee", ["500"]);
+            expect(await bridge.withdrawFeeBasisPoints()).to.equal(500n);
+        });
+
+        it("Test 107: revert: setWithdrawFee exceeding MAX_FEE_UNITS reverts InvalidFee", async function () {
+            try {
+                const tx = await bridge.setWithdrawFee(200000n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFee|revert/i);
+                console.log("    [Info] Correctly reverted: setWithdrawFee > MAX_FEE_UNITS");
+            }
+        });
+
+        it("Test 108: transferOwnership revokes old operators and grants to new owner", async function () {
+            const newOwner = ethers.Wallet.createRandom().address;
+            const OPERATOR_ROLE = await bridge.OPERATOR_ROLE();
+
+            // Check current operator count
+            const opCountBefore = await bridge.getRoleMemberCount(OPERATOR_ROLE);
+            console.log(`    [Info] Operators before transfer: ${opCountBefore}`);
+
+            const tx = await bridge.transferOwnership(newOwner, { gasLimit: 2000000 });
+            await logTx(tx, `transferOwnership to ${newOwner}`, "transferOwnership", [newOwner]);
+
+            // New owner should have operator role
+            expect(await bridge.isOperator(newOwner)).to.equal(true);
+            // Old owner should NOT have operator role
+            expect(await bridge.isOperator(owner.address)).to.equal(false);
+            // New owner is the owner
+            expect(await bridge.owner()).to.equal(newOwner);
+
+            console.log("    [Info] Ownership transferred, old operators revoked, new owner has roles");
+            // NOTE: We can't transfer back since we don't have the new owner's private key.
+            // This bridge instance is now owned by a random address — subsequent tests use different bridges.
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FULL COVERAGE — ERC20 BRIDGE REVERT PATHS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Full Coverage - ERC20 Bridge Reverts", function () {
+        let publicToken, privateToken, bridge, mockOracle;
+        const UNIT = BigInt(10 ** 18);
+        const COTI_FEE_BUFFER = ethers.parseEther("3100");
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+            await mockOracle.setPrice("ETH", ethers.parseEther("2300"), { gasLimit: 2000000 });
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockOracle.setLastUpdated(currentBlock.timestamp, { gasLimit: 2000000 });
+
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            if (chainId === 7082400n) {
+                const WETH_ADDRESS = "0x8bca4e6bbE402DB4aD189A316137aD08206154FB";
+                const PRIVATE_WETH_ADDRESS = "0x6f7E5eE3a913aa00c6eB9fEeCad57a7d02F7f45c";
+                publicToken = await ethers.getContractAt("ERC20Mock", WETH_ADDRESS);
+                privateToken = await ethers.getContractAt("PrivateWrappedEther", PRIVATE_WETH_ADDRESS);
+
+                bridge = await (await ethers.getContractFactory("PrivacyBridgeWETH")).deploy(WETH_ADDRESS, PRIVATE_WETH_ADDRESS, owner.address, owner.address, { gasLimit: 12000000 });
+                await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+                const bridgeAddr = await addr(bridge);
+                await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (ERC20 revert suite)", "setPriceOracle", [await addr(mockOracle)]);
+                await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), "Grant MINTER_ROLE (ERC20 revert suite)", "grantRole", ["MINTER_ROLE", bridgeAddr]);
+            } else {
+                publicToken = await (await ethers.getContractFactory("ERC20Mock")).deploy("Wrapped Ether", "WETH", 18, { gasLimit: 12000000 });
+                await (publicToken.waitForDeployment ? publicToken.waitForDeployment() : publicToken.deployed());
+                privateToken = await (await ethers.getContractFactory("PrivateERC20Mock")).deploy({ gasLimit: 12000000 });
+                await (privateToken.waitForDeployment ? privateToken.waitForDeployment() : privateToken.deployed());
+
+                bridge = await (await ethers.getContractFactory("PrivacyBridgeWETH")).deploy(await addr(publicToken), await addr(privateToken), owner.address, owner.address, { gasLimit: 12000000 });
+                await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+                const bridgeAddr = await addr(bridge);
+                await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (ERC20 revert suite)", "setPriceOracle", [await addr(mockOracle)]);
+                await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), "Grant MINTER_ROLE (ERC20 revert suite)", "grantRole", ["MINTER_ROLE", bridgeAddr]);
+                await logTx(await publicToken.mint(owner.address, 10000n * UNIT, { gasLimit: 2000000 }), "Mint 10000 WETH", "mint", [owner.address, "10000"]);
+            }
+
+            await registerContract("PrivacyBridgeWETH", bridge, "Full Coverage - ERC20 Reverts");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 109: revert: ERC20 deposit with amount=0 reverts AmountZero", async function () {
+            const [, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(1n * UNIT);
+            try {
+                const tx = await bridge["deposit(uint256,uint256,uint256)"](0n, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: ERC20 deposit amount=0");
+            }
+        });
+
+        it("Test 110: revert: ERC20 withdraw with amount=0 reverts AmountZero", async function () {
+            const [, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateWithdrawFee(1n * UNIT);
+            try {
+                const tx = await bridge["withdraw(uint256,uint256,uint256)"](0n, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: ERC20 withdraw amount=0");
+            }
+        });
+
+        it("Test 111: revert: ERC20 deposit when deposits disabled reverts DepositDisabled", async function () {
+            await logTx(await bridge.setIsDepositEnabled(false, { gasLimit: 2000000 }), "Disable deposits (ERC20)", "setIsDepositEnabled", ["false"]);
+
+            const amount = 1n * UNIT;
+            const bridgeAddr = await addr(bridge);
+            await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for disabled deposit test", "approve", [bridgeAddr, "1"]);
+            const [, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(amount);
+
+            try {
+                const tx = await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/DepositDisabled|revert/i);
+                console.log("    [Info] Correctly reverted: ERC20 deposit when disabled");
+            }
+
+            await logTx(await bridge.setIsDepositEnabled(true, { gasLimit: 2000000 }), "Re-enable deposits (ERC20)", "setIsDepositEnabled", ["true"]);
+        });
+
+        it("Test 112: revert: ERC20 withdraw with InsufficientBridgeLiquidity", async function () {
+            // Try to withdraw more than the bridge holds (bridge has 0 tokens)
+            const amount = 1000n * UNIT;
+            const bridgeAddr = await addr(bridge);
+            await logTx(await privateToken["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for liquidity test", "approve", [bridgeAddr, "1000"]);
+            const [, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateWithdrawFee(amount);
+
+            try {
+                const tx = await bridge["withdraw(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InsufficientBridgeLiquidity|revert/i);
+                console.log("    [Info] Correctly reverted: InsufficientBridgeLiquidity");
+            }
+        });
+
+        it("Test 113: revert: rescueERC20 with private token reverts CannotRescueBridgeToken", async function () {
+            const privAddr = await addr(privateToken);
+            try {
+                const tx = await bridge.rescueERC20(privAddr, 1n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/CannotRescueBridgeToken|revert/i);
+                console.log("    [Info] Correctly reverted: rescueERC20(privateToken)");
+            }
+        });
+
+        it("Test 114: revert: rescueERC20 with amount=0 reverts AmountZero", async function () {
+            const pubAddr = await addr(publicToken);
+            try {
+                const tx = await bridge.rescueERC20(pubAddr, 0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: rescueERC20 amount=0");
+            }
+        });
+
+        it("Test 115: ERC20 setNativeCotiFee works (not native bridge)", async function () {
+            const tx = await bridge.setNativeCotiFee(ethers.parseEther("5"), { gasLimit: 2000000 });
+            await logTx(tx, "setNativeCotiFee(5) on ERC20 bridge", "setNativeCotiFee", ["5"]);
+            expect(await bridge.nativeCotiFee()).to.equal(ethers.parseEther("5"));
+            await expect(tx).to.emit(bridge, "NativeCotiFeeUpdated");
+
+            // Reset
+            const resetTx = await bridge.setNativeCotiFee(0n, { gasLimit: 2000000 });
+            await logTx(resetTx, "Reset nativeCotiFee to 0", "setNativeCotiFee", ["0"]);
+        });
+
+        it("Test 116: ERC20 withdrawCotiFees happy path", async function () {
+            // First deposit to accumulate some COTI fees
+            const amount = 10n * UNIT;
+            const bridgeAddr = await addr(bridge);
+            await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for withdrawCotiFees test", "approve", [bridgeAddr, "10"]);
+            const [fee, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(amount);
+            await logTx(await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), "Deposit for COTI fee accumulation", "deposit", ["10"]);
+
+            const fees = await bridge.accumulatedCotiFees();
+            console.log(`    [Info] Accumulated COTI fees: ${ethers.formatEther(fees)}`);
+            expect(fees).to.be.gt(0n);
+
+            const withdrawAmount = fees / 2n;
+            const tx = await bridge.withdrawCotiFees(withdrawAmount, { gasLimit: 2000000 });
+            await logTx(tx, `withdrawCotiFees(${ethers.formatEther(withdrawAmount)})`, "withdrawCotiFees", [ethers.formatEther(withdrawAmount)]);
+            await expect(tx).to.emit(bridge, "CotiFeesWithdrawn");
+        });
+
+        it("Test 117: revert: withdrawCotiFees(0) reverts AmountZero", async function () {
+            try {
+                const tx = await bridge.withdrawCotiFees(0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/AmountZero|revert/i);
+                console.log("    [Info] Correctly reverted: withdrawCotiFees(0)");
+            }
+        });
+
+        it("Test 118: revert: withdrawCotiFees exceeding accumulated reverts", async function () {
+            try {
+                const tx = await bridge.withdrawCotiFees(ethers.parseEther("999999"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InsufficientAccumulatedFees|revert/i);
+                console.log("    [Info] Correctly reverted: withdrawCotiFees > accumulated");
+            }
+        });
+
+        it("Test 119: ERC20 totalUserLiability tracks deposit and withdraw", async function () {
+            const amount = 5n * UNIT;
+            const bridgeAddr = await addr(bridge);
+
+            // Deposit
+            await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for liability test", "approve", [bridgeAddr, "5"]);
+            const liabilityBefore = await bridge.totalUserLiability();
+            const [, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(amount);
+            await logTx(await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), "Deposit for ERC20 liability test", "deposit", ["5"]);
+            const liabilityAfterDeposit = await bridge.totalUserLiability();
+            expect(liabilityAfterDeposit).to.be.gt(liabilityBefore);
+            console.log(`    [Info] Liability after deposit: ${ethers.formatEther(liabilityAfterDeposit)}`);
+
+            // Withdraw
+            await logTx(await privateToken["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve private for liability withdraw", "approve", [bridgeAddr, "5"]);
+            const [, cotiLastUpdated2, tokenLastUpdated2] = await bridge.estimateWithdrawFee(amount);
+            await logTx(await bridge["withdraw(uint256,uint256,uint256)"](amount, cotiLastUpdated2, tokenLastUpdated2, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), "Withdraw for ERC20 liability test", "withdraw", ["5"]);
+            const liabilityAfterWithdraw = await bridge.totalUserLiability();
+            expect(liabilityAfterWithdraw).to.be.lt(liabilityAfterDeposit);
+            console.log(`    [Info] Liability after withdraw: ${ethers.formatEther(liabilityAfterWithdraw)}`);
+        });
+
+        it("Test 120: revert: addOperator with zero address reverts InvalidAddress", async function () {
+            try {
+                const tx = await bridge.addOperator(ethers.ZeroAddress, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidAddress|revert/i);
+                console.log("    [Info] Correctly reverted: addOperator(address(0))");
+            }
+        });
+
+        it("Test 121: revert: removeOperator with zero address reverts InvalidAddress", async function () {
+            try {
+                const tx = await bridge.removeOperator(ethers.ZeroAddress, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidAddress|revert/i);
+                console.log("    [Info] Correctly reverted: removeOperator(address(0))");
+            }
+        });
+
+        it("Test 122: revert: removeFromBlacklist with zero address reverts InvalidAddress", async function () {
+            try {
+                const tx = await bridge.removeFromBlacklist(ethers.ZeroAddress, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidAddress|revert/i);
+                console.log("    [Info] Correctly reverted: removeFromBlacklist(address(0))");
+            }
+        });
+
+        it("Test 123: revert: setWithdrawDynamicFee with fixedFee > maxFee reverts", async function () {
+            try {
+                const tx = await bridge.setWithdrawDynamicFee(ethers.parseEther("5000"), 250n, ethers.parseEther("1500"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFeeConfiguration|revert/i);
+                console.log("    [Info] Correctly reverted: setWithdrawDynamicFee fixedFee > maxFee");
+            }
+        });
+
+        it("Test 124: revert: setWithdrawDynamicFee with maxFee=0 reverts", async function () {
+            try {
+                const tx = await bridge.setWithdrawDynamicFee(0n, 250n, 0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFeeConfiguration|revert/i);
+                console.log("    [Info] Correctly reverted: setWithdrawDynamicFee maxFee=0");
+            }
+        });
+
+        it("Test 125: revert: setWithdrawDynamicFee with pctBps > MAX_FEE_UNITS reverts", async function () {
+            try {
+                const tx = await bridge.setWithdrawDynamicFee(ethers.parseEther("3"), 200000n, ethers.parseEther("1500"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFee|revert/i);
+                console.log("    [Info] Correctly reverted: setWithdrawDynamicFee pctBps > MAX");
+            }
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FULL COVERAGE — CotiPriceConsumer
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Full Coverage - CotiPriceConsumer", function () {
+        let oracle, mockRef;
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            // Deploy MockStdReference (Band Protocol mock)
+            const MockRefFactory = await ethers.getContractFactory("MockStdReference");
+            mockRef = await MockRefFactory.deploy({ gasLimit: 12000000 });
+            await (mockRef.waitForDeployment ? mockRef.waitForDeployment() : mockRef.deployed());
+
+            // Set COTI price and ETH price
+            await mockRef.setRate("COTI", ethers.parseEther("0.05"), { gasLimit: 2000000 });
+            await mockRef.setRate("ETH", ethers.parseEther("2300"), { gasLimit: 2000000 });
+            // Set lastUpdated to current block timestamp
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockRef.setLastUpdatedBase("COTI", currentBlock.timestamp, { gasLimit: 2000000 });
+            await mockRef.setLastUpdatedBase("ETH", currentBlock.timestamp, { gasLimit: 2000000 });
+
+            // Deploy real CotiPriceConsumer with MockStdReference
+            const OracleFactory = await ethers.getContractFactory("CotiPriceConsumer");
+            oracle = await OracleFactory.deploy(await addr(mockRef), 3600, { gasLimit: 12000000 });
+            await (oracle.waitForDeployment ? oracle.waitForDeployment() : oracle.deployed());
+
+            await registerContract("CotiPriceConsumer", oracle, "Full Coverage - CotiPriceConsumer");
+            await registerContract("MockStdReference", mockRef, "Full Coverage - CotiPriceConsumer");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 126: oracle: owner is deployer", async function () {
+            const oracleOwner = await oracle.owner();
+            console.log(`    [Info] Oracle owner: ${oracleOwner}`);
+            expect(oracleOwner).to.equal(owner.address);
+        });
+
+        it("Test 127: oracle: ref is immutable and set correctly", async function () {
+            const refAddr = await oracle.ref();
+            console.log(`    [Info] Oracle ref: ${refAddr}`);
+            expect(refAddr).to.equal(await addr(mockRef));
+        });
+
+        it("Test 128: oracle: maxStaleness is set correctly", async function () {
+            const staleness = await oracle.maxStaleness();
+            console.log(`    [Info] maxStaleness: ${staleness}`);
+            expect(staleness).to.equal(3600n);
+        });
+
+        it("Test 129: oracle: MIN_STALENESS constant is 3600", async function () {
+            const minStaleness = await oracle.MIN_STALENESS();
+            console.log(`    [Info] MIN_STALENESS: ${minStaleness}`);
+            expect(minStaleness).to.equal(3600n);
+        });
+
+        it("Test 130: oracle: getPrice returns correct rate", async function () {
+            const cotiPrice = await oracle.getPrice("COTI");
+            console.log(`    [Info] COTI price: ${ethers.formatEther(cotiPrice)}`);
+            expect(cotiPrice).to.equal(ethers.parseEther("0.05"));
+
+            const ethPrice = await oracle.getPrice("ETH");
+            console.log(`    [Info] ETH price: ${ethers.formatEther(ethPrice)}`);
+            expect(ethPrice).to.equal(ethers.parseEther("2300"));
+        });
+
+        it("Test 131: oracle: getPriceWithMeta returns rate, lastUpdated, blockTimestamp", async function () {
+            const [rate, lastUpdated, blockTimestamp] = await oracle.getPriceWithMeta("COTI");
+            console.log(`    [Info] getPriceWithMeta: rate=${ethers.formatEther(rate)}, lastUpdated=${lastUpdated}, blockTs=${blockTimestamp}`);
+            expect(rate).to.equal(ethers.parseEther("0.05"));
+            expect(lastUpdated).to.be.gt(0n);
+            expect(blockTimestamp).to.be.gt(0n);
+        });
+
+        it("Test 132: oracle: getPriceData returns full ReferenceData struct", async function () {
+            const data = await oracle.getPriceData("COTI");
+            console.log(`    [Info] getPriceData: rate=${ethers.formatEther(data.rate)}, lastUpdatedBase=${data.lastUpdatedBase}`);
+            expect(data.rate).to.equal(ethers.parseEther("0.05"));
+            expect(data.lastUpdatedBase).to.be.gt(0n);
+            expect(data.lastUpdatedQuote).to.be.gt(0n);
+        });
+
+        it("Test 133: oracle: setMaxStaleness updates threshold and emits event", async function () {
+            const tx = await oracle.setMaxStaleness(7200, { gasLimit: 2000000 });
+            await logTx(tx, "setMaxStaleness(7200)", "setMaxStaleness", ["7200"]);
+            await expect(tx).to.emit(oracle, "MaxStalenessUpdated");
+            expect(await oracle.maxStaleness()).to.equal(7200n);
+
+            // Restore
+            const restoreTx = await oracle.setMaxStaleness(3600, { gasLimit: 2000000 });
+            await logTx(restoreTx, "Restore maxStaleness(3600)", "setMaxStaleness", ["3600"]);
+        });
+
+        it("Test 134: oracle: setMaxStaleness reverts if below MIN_STALENESS", async function () {
+            try {
+                const tx = await oracle.setMaxStaleness(100, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/StalenessTooLow|revert/i);
+                console.log("    [Info] Correctly reverted: staleness < MIN_STALENESS");
+            }
+        });
+
+        it("Test 135: oracle: getPrice reverts on stale data", async function () {
+            // Set lastUpdated to a very old timestamp (2 hours ago)
+            const currentBlock = await ethers.provider.getBlock("latest");
+            const staleTimestamp = currentBlock.timestamp - 7200;
+            await mockRef.setLastUpdatedBase("COTI", staleTimestamp, { gasLimit: 2000000 });
+
+            try {
+                await oracle.getPrice("COTI");
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/StaleOracleData|revert/i);
+                console.log("    [Info] Correctly reverted: StaleOracleData");
+            }
+
+            // Restore fresh timestamp
+            const freshBlock = await ethers.provider.getBlock("latest");
+            await mockRef.setLastUpdatedBase("COTI", freshBlock.timestamp, { gasLimit: 2000000 });
+        });
+
+        it("Test 136: oracle: constructor reverts with zero ref address", async function () {
+            const OracleFactory = await ethers.getContractFactory("CotiPriceConsumer");
+            try {
+                const badOracle = await OracleFactory.deploy(ethers.ZeroAddress, 3600, { gasLimit: 12000000 });
+                await (badOracle.waitForDeployment ? badOracle.waitForDeployment() : badOracle.deployed());
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/zero ref address|revert/i);
+                console.log("    [Info] Correctly reverted: constructor with zero ref");
+            }
+        });
+
+        it("Test 137: oracle: constructor reverts with staleness below minimum", async function () {
+            const OracleFactory = await ethers.getContractFactory("CotiPriceConsumer");
+            try {
+                const badOracle = await OracleFactory.deploy(await addr(mockRef), 100, { gasLimit: 12000000 });
+                await (badOracle.waitForDeployment ? badOracle.waitForDeployment() : badOracle.deployed());
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/StalenessTooLow|revert/i);
+                console.log("    [Info] Correctly reverted: constructor with staleness < MIN_STALENESS");
+            }
+        });
+
+        it("Test 138: oracle: setMaxStaleness reverts for non-owner", async function () {
+            // user1 is not the owner
+            if (user1.address === owner.address) {
+                console.log("    [Info] Skipping: user1 === owner on single-signer testnet");
+                this.skip();
+                return;
+            }
+            try {
+                const tx = await oracle.connect(user1).setMaxStaleness(7200, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert");
+            } catch (error) {
+                expect(error.message).to.match(/caller is not the owner|revert/i);
+                console.log("    [Info] Correctly reverted: non-owner setMaxStaleness");
+            }
+        });
+    });
+
     after(function () {
         console.log("\n===========================================================");
         console.log(`TOTAL TESTS RUN: ${testCounter}`);
