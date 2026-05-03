@@ -752,7 +752,7 @@ describe("Unified Privacy Bridges Suite", function () {
 
         it("Test 46: coverage: receive() fallback with direct transfer", async function () {
             const bridgeAddr = await addr(bridge);
-            const amount = ethers.parseEther("0.01");
+            const amount = ethers.parseEther("100");
 
             const balanceBefore = await ethers.provider.getBalance(bridgeAddr);
 
