@@ -220,7 +220,7 @@ describe("Unified Privacy Bridges Suite", function () {
 
             const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
             const pCotiAddr = await addr(privateCoti);
-            bridge = await BridgeFactory.deploy(pCotiAddr, { gasLimit: 12000000 });
+            bridge = await BridgeFactory.deploy(pCotiAddr, owner.address, owner.address, { gasLimit: 12000000 });
             await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
             const bridgeAddr = await addr(bridge);
@@ -245,10 +245,10 @@ describe("Unified Privacy Bridges Suite", function () {
             const initialBalance = await ethers.provider.getBalance(bridgeAddr);
 
             // Estimate fee and get oracle timestamp
-            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+            const [fee, cotiLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(amount);
             console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
 
-            const tx = await bridge.connect(user1)["deposit(uint256)"](blockTimestamp, { value: amount, gasLimit: 12000000 });
+            const tx = await bridge.connect(user1)["deposit(uint256,uint256)"](blockTimestamp, blockTimestamp, { value: amount, gasLimit: 12000000 });
             await logTx(tx, `Deposit ${ethers.formatEther(amount)} Native COTI`, "PrivacyBridgeCotiNative.deposit() -> PrivateERC20Mock.mint", [ethers.formatEther(amount)]);
 
             await expect(tx).to.emit(bridge, "Deposit");
@@ -262,10 +262,10 @@ describe("Unified Privacy Bridges Suite", function () {
             await logTx(await privateCoti.connect(user1)["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve private COTI for withdrawal", "PrivateERC20Mock.approve", [bridgeAddr, ethers.formatEther(amount)]);
 
             // Estimate fee and get oracle timestamp
-            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
+            const [fee, cotiLastUpdated, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
             console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
 
-            const tx = await bridge.connect(user1)["withdraw(uint256,uint256)"](amount, blockTimestamp, { gasLimit: 12000000 });
+            const tx = await bridge.connect(user1)["withdraw(uint256,uint256,uint256)"](amount, blockTimestamp, blockTimestamp, { gasLimit: 12000000 });
             await logTx(tx, `Withdraw ${ethers.formatEther(amount)} Native COTI`, "PrivacyBridgeCotiNative.withdraw() -> PrivateERC20Mock.burn", [ethers.formatEther(amount)]);
 
             await expect(tx).to.emit(bridge, "Withdraw");
@@ -282,10 +282,10 @@ describe("Unified Privacy Bridges Suite", function () {
             const feeBefore = await bridge.accumulatedCotiFees();
             
             // Estimate fee and get oracle timestamp
-            const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(gross);
+            const [fee, cotiLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(gross);
             console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
             
-            await logTx(await bridge["deposit(uint256)"](blockTimestamp, { value: gross, gasLimit: 12000000 }), "Deposit for dynamic fee accumulation", "PrivacyBridgeCotiNative.deposit()", [ethers.formatEther(gross)]);
+            await logTx(await bridge["deposit(uint256,uint256)"](blockTimestamp, blockTimestamp, { value: gross, gasLimit: 12000000 }), "Deposit for dynamic fee accumulation", "PrivacyBridgeCotiNative.deposit()", [ethers.formatEther(gross)]);
 
             const feeAfter = await bridge.accumulatedCotiFees();
             const actualFee = feeAfter - feeBefore;
@@ -293,7 +293,7 @@ describe("Unified Privacy Bridges Suite", function () {
             console.log(`    [Info] Dynamic fee charged: ${ethers.formatEther(actualFee)} COTI`);
 
             // Withdraw fees
-            await logTx(await bridge.withdrawFees(owner.address, actualFee, { gasLimit: 2000000 }), "Withdraw accumulated COTI fees", "PrivacyBridgeCotiNative.withdrawFees", [owner.address, ethers.formatEther(actualFee)]);
+            await logTx(await bridge.withdrawFees(actualFee, { gasLimit: 2000000 }), "Withdraw accumulated COTI fees", "PrivacyBridgeCotiNative.withdrawFees", [ethers.formatEther(actualFee)]);
             expect(await bridge.accumulatedCotiFees()).to.equal(feeBefore);
         });
 
@@ -303,8 +303,8 @@ describe("Unified Privacy Bridges Suite", function () {
             const bal = await ethers.provider.getBalance(bridgeAddr);
             if (bal > 0n) {
                 const amount = bal / 2n;
-                const tx = await bridge.rescueNative(owner.address, amount, { gasLimit: 2000000 });
-                await logTx(tx, `rescueNative ${ethers.formatEther(amount)} COTI`, "PrivacyBridgeCotiNative.rescueNative", [owner.address, ethers.formatEther(amount)]);
+                const tx = await bridge.rescueNative(amount, { gasLimit: 2000000 });
+                await logTx(tx, `rescueNative ${ethers.formatEther(amount)} COTI`, "PrivacyBridgeCotiNative.rescueNative", [ethers.formatEther(amount)]);
             }
         });
     });
@@ -347,7 +347,7 @@ describe("Unified Privacy Bridges Suite", function () {
                     const pubAddr = await addr(publicToken);
                     const privAddr = await addr(privateToken);
 
-                    bridge = await (await ethers.getContractFactory(cfg.bridgeFactory)).deploy(pubAddr, privAddr, { gasLimit: 12000000 });
+                    bridge = await (await ethers.getContractFactory(cfg.bridgeFactory)).deploy(pubAddr, privAddr, owner.address, owner.address, { gasLimit: 12000000 });
                     await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
                     const bridgeAddr = await addr(bridge);
@@ -363,7 +363,7 @@ describe("Unified Privacy Bridges Suite", function () {
                     const pubAddr = await addr(publicToken);
                     const privAddr = await addr(privateToken);
 
-                    bridge = await (await ethers.getContractFactory(cfg.bridgeFactory)).deploy(pubAddr, privAddr, { gasLimit: 12000000 });
+                    bridge = await (await ethers.getContractFactory(cfg.bridgeFactory)).deploy(pubAddr, privAddr, owner.address, owner.address, { gasLimit: 12000000 });
                     await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
                     const bridgeAddr = await addr(bridge);
@@ -390,10 +390,10 @@ describe("Unified Privacy Bridges Suite", function () {
                 await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), `Approve ${cfg.name} for bridge`, "MockWETH.approve", [bridgeAddr, "10"]);
 
                 // Estimate fee and get oracle timestamp
-                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+                const [fee, cotiLastUpdated, tokenLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(amount);
                 console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
 
-                const tx = await bridge["deposit(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                const tx = await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
                 await logTx(tx, `Deposit ${amount / UNIT} ${cfg.name}`, `PrivacyBridgeERC20.deposit()`, ["10"]);
                 await expect(tx).to.emit(bridge, "Deposit");
             });
@@ -404,10 +404,10 @@ describe("Unified Privacy Bridges Suite", function () {
                 await logTx(await privateToken["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), `Approve private ${cfg.name}`, "PrivateERC20Mock.approve", [bridgeAddr, "5"]);
 
                 // Estimate fee and get oracle timestamp
-                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
+                const [fee, cotiLastUpdated, tokenLastUpdated, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
                 console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
 
-                const tx = await bridge["withdraw(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+                const tx = await bridge["withdraw(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
                 await logTx(tx, `Withdraw ${amount / UNIT} ${cfg.name}`, "PrivacyBridgeERC20.withdraw()", ["5"]);
                 await expect(tx).to.emit(bridge, "Withdraw");
             });
@@ -419,10 +419,10 @@ describe("Unified Privacy Bridges Suite", function () {
                 const feeBefore = await bridge.accumulatedCotiFees();
                 
                 // Estimate fee and get oracle timestamp
-                const [fee, lastUpdated, threshold, blockTimestamp] = await bridge.estimateDepositFee(amount);
+                const [fee, cotiLastUpdated, tokenLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(amount);
                 console.log(`    [Fee Estimation] fee=${ethers.formatEther(fee)} COTI, blockTimestamp=${blockTimestamp}`);
                 
-                await logTx(await bridge["deposit(uint256,uint256)"](amount, blockTimestamp, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit()", ["100"]);
+                await logTx(await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 }), `Deposit 100 ${cfg.name} for fee test`, "PrivacyBridgeERC20.deposit()", ["100"]);
                 const feeAfter = await bridge.accumulatedCotiFees();
                 const actualFee = feeAfter - feeBefore;
                 expect(actualFee).to.be.gt(0n);
@@ -442,7 +442,7 @@ describe("Unified Privacy Bridges Suite", function () {
                 await logTx(await strayToken.mint(bridgeAddr, UNIT, { gasLimit: 2000000 }), "Mint stray tokens to bridge", "ERC20Mock.mint", [bridgeAddr, "1"]);
 
                 // Rescue the stray tokens (not the bridge token)
-                await logTx(await bridge.rescueERC20(strayAddr, owner.address, UNIT, { gasLimit: 2000000 }), "Rescue stray tokens", "PrivacyBridgeERC20.rescueERC20", [strayAddr, owner.address, "1"]);
+                await logTx(await bridge.rescueERC20(strayAddr, UNIT, { gasLimit: 2000000 }), "Rescue stray tokens", "PrivacyBridgeERC20.rescueERC20", [strayAddr, "1"]);
 
                 // Verify owner received the rescued tokens
                 const ownerBalance = await strayToken.balanceOf(owner.address);
@@ -704,7 +704,7 @@ describe("Unified Privacy Bridges Suite", function () {
 
             const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
             const pCotiAddr = await addr(privateCoti);
-            bridge = await BridgeFactory.deploy(pCotiAddr, { gasLimit: 30000000 });
+            bridge = await BridgeFactory.deploy(pCotiAddr, owner.address, owner.address, { gasLimit: 30000000 });
             await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
 
             const bridgeAddr = await addr(bridge);
@@ -756,17 +756,9 @@ describe("Unified Privacy Bridges Suite", function () {
             expect(balanceAfter).to.be.at.least(balanceBefore + amount);
         });
 
-        it("Test 47: coverage: onTokenReceived direct call should revert InvalidAddress", async function () {
-            // Calling onTokenReceived directly (not via transferAndCall from privateCoti)
-            // must revert because msg.sender != address(privateCoti)
-            const amount = ethers.parseEther("0.01");
-            const data = ethers.toUtf8Bytes("test");
-
-            // Use staticCall to simulate and verify the revert without broadcasting a real tx
-            const callPromise = bridge.connect(owner)["onTokenReceived(address,uint256,bytes)"].staticCall(
-                owner.address, amount, data, { gasLimit: 2000000 }
-            );
-            await expect(callPromise).to.be.revertedWithCustomError(bridge, "InvalidAddress");
+        it.skip("Test 47: coverage: onTokenReceived was removed (SAY-01)", async function () {
+            // onTokenReceived was removed from PrivacyBridgeCotiNative as part of SAY-01.
+            // This test is no longer applicable.
         });
     });
 
