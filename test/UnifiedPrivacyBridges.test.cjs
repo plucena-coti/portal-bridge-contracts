@@ -1339,7 +1339,7 @@ describe("Unified Privacy Bridges Suite", function () {
             const amount = ethers.parseEther("50");
             const bridgeAddr = await addr(bridge);
 
-            await logTx(await privateCoti.connect(user1 || owner)["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for liability withdraw test", "approve", [bridgeAddr, "50"]);
+            await logTx(await privateCoti.connect(owner)["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for liability withdraw test", "approve", [bridgeAddr, "50"]);
 
             const liabilityBefore = await bridge.totalUserLiability();
             const [fee, cotiLastUpdated] = await bridge.estimateWithdrawFee(amount);
