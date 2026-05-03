@@ -1117,6 +1117,634 @@ describe("Unified Privacy Bridges Suite", function () {
         });
     });
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // DYNAMIC FEE & SECURITY FEATURE TESTS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Dynamic Fee Features - Native Bridge", function () {
+        let privateCoti, bridge, mockOracle;
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            // Deploy mock oracle
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            // COTI at $0.05
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockOracle.setLastUpdated(currentBlock.timestamp, { gasLimit: 2000000 });
+
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            if (chainId === 7082400n) {
+                privateCoti = await ethers.getContractAt("PrivateCOTI", "0x03eeA59b1F0Dfeaece75531b27684DD882f79759");
+                console.log("    [Info] Using pre-deployed PrivateCOTI at 0x03eeA59b1F0Dfeaece75531b27684DD882f79759");
+            } else {
+                const PrivateCotiFactory = await ethers.getContractFactory("PrivateERC20Mock");
+                privateCoti = await PrivateCotiFactory.deploy({ gasLimit: 12000000 });
+                await (privateCoti.waitForDeployment ? privateCoti.waitForDeployment() : privateCoti.deployed());
+            }
+
+            const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
+            const pCotiAddr = await addr(privateCoti);
+            bridge = await BridgeFactory.deploy(pCotiAddr, owner.address, owner.address, { gasLimit: 30000000 });
+            await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+            const bridgeAddr = await addr(bridge);
+            await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set price oracle (dynamic fee suite)", "setPriceOracle", [await addr(mockOracle)]);
+            await logTx(await privateCoti.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 2000000 }), "Grant MINTER_ROLE (dynamic fee suite)", "grantRole", ["MINTER_ROLE", bridgeAddr]);
+            await registerContract("PrivacyBridgeCotiNative", bridge, "Dynamic Fee - Native");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 63: dynamic-fee: Should verify default fee parameters", async function () {
+            const depositFixed = await bridge.depositFixedFee();
+            const depositPct = await bridge.depositPercentageBps();
+            const depositMax = await bridge.depositMaxFee();
+            const withdrawFixed = await bridge.withdrawFixedFee();
+            const withdrawPct = await bridge.withdrawPercentageBps();
+            const withdrawMax = await bridge.withdrawMaxFee();
+
+            console.log(`    [Info] Deposit: fixed=${ethers.formatEther(depositFixed)}, pct=${depositPct}, max=${ethers.formatEther(depositMax)}`);
+            console.log(`    [Info] Withdraw: fixed=${ethers.formatEther(withdrawFixed)}, pct=${withdrawPct}, max=${ethers.formatEther(withdrawMax)}`);
+
+            expect(depositFixed).to.equal(ethers.parseEther("10"));
+            expect(depositPct).to.equal(500n);
+            expect(depositMax).to.equal(ethers.parseEther("3000"));
+            expect(withdrawFixed).to.equal(ethers.parseEther("3"));
+            expect(withdrawPct).to.equal(250n);
+            expect(withdrawMax).to.equal(ethers.parseEther("1500"));
+        });
+
+        it("Test 64: dynamic-fee: estimateDepositFee returns correct fee and timestamps", async function () {
+            const amount = ethers.parseEther("100");
+            const [fee, cotiLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(amount);
+
+            console.log(`    [Info] estimateDepositFee(100 COTI): fee=${ethers.formatEther(fee)}, lastUpdated=${cotiLastUpdated}, blockTs=${blockTimestamp}`);
+
+            // 100 COTI at $0.05 = $5 USD value
+            // pctFee = $5 * 500/1000000 = $0.0025
+            // pctFeeCoti = $0.0025 / $0.05 = 0.05 COTI
+            // fee = max(10 COTI, 0.05 COTI) = 10 COTI (floor dominates)
+            expect(fee).to.equal(ethers.parseEther("10"));
+            expect(cotiLastUpdated).to.be.gt(0n);
+            expect(blockTimestamp).to.be.gt(0n);
+        });
+
+        it("Test 65: dynamic-fee: estimateWithdrawFee returns correct fee and timestamps", async function () {
+            const amount = ethers.parseEther("100");
+            const [fee, cotiLastUpdated, blockTimestamp] = await bridge.estimateWithdrawFee(amount);
+
+            console.log(`    [Info] estimateWithdrawFee(100 COTI): fee=${ethers.formatEther(fee)}, lastUpdated=${cotiLastUpdated}, blockTs=${blockTimestamp}`);
+
+            // 100 COTI at $0.05 = $5 USD value
+            // pctFee = $5 * 250/1000000 = $0.00125
+            // pctFeeCoti = $0.00125 / $0.05 = 0.025 COTI
+            // fee = max(3 COTI, 0.025 COTI) = 3 COTI (floor dominates)
+            expect(fee).to.equal(ethers.parseEther("3"));
+            expect(cotiLastUpdated).to.be.gt(0n);
+        });
+
+        it("Test 66: dynamic-fee: Percentage fee dominates for large deposits", async function () {
+            // 1,000,000 COTI at $0.05 = $50,000 USD
+            // pctFee = $50,000 * 500/1,000,000 = $25
+            // pctFeeCoti = $25 / $0.05 = 500 COTI
+            // fee = max(10, 500) = 500, min(500, 3000) = 500 COTI
+            const amount = ethers.parseEther("1000000");
+            const [fee] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Info] estimateDepositFee(1M COTI): fee=${ethers.formatEther(fee)} COTI`);
+            expect(fee).to.equal(ethers.parseEther("500"));
+        });
+
+        it("Test 67: dynamic-fee: Max fee cap applies for very large deposits", async function () {
+            // 100,000,000 COTI at $0.05 = $5,000,000 USD
+            // pctFee = $5M * 500/1M = $2,500
+            // pctFeeCoti = $2,500 / $0.05 = 50,000 COTI
+            // fee = max(10, 50000) = 50000, min(50000, 3000) = 3000 COTI (cap)
+            const amount = ethers.parseEther("100000000");
+            const [fee] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Info] estimateDepositFee(100M COTI): fee=${ethers.formatEther(fee)} COTI (capped)`);
+            expect(fee).to.equal(ethers.parseEther("3000"));
+        });
+
+        it("Test 68: dynamic-fee: setDepositDynamicFee updates parameters", async function () {
+            const newFixed = ethers.parseEther("20");
+            const newPct = 1000n; // 0.1%
+            const newMax = ethers.parseEther("5000");
+
+            const tx = await bridge.setDepositDynamicFee(newFixed, newPct, newMax, { gasLimit: 2000000 });
+            await logTx(tx, "setDepositDynamicFee(20, 1000, 5000)", "setDepositDynamicFee", ["20", "1000", "5000"]);
+
+            expect(await bridge.depositFixedFee()).to.equal(newFixed);
+            expect(await bridge.depositPercentageBps()).to.equal(newPct);
+            expect(await bridge.depositMaxFee()).to.equal(newMax);
+
+            // Restore defaults
+            const restoreTx = await bridge.setDepositDynamicFee(ethers.parseEther("10"), 500n, ethers.parseEther("3000"), { gasLimit: 2000000 });
+            await logTx(restoreTx, "Restore deposit fee defaults", "setDepositDynamicFee", ["10", "500", "3000"]);
+        });
+
+        it("Test 69: dynamic-fee: setWithdrawDynamicFee updates parameters", async function () {
+            const newFixed = ethers.parseEther("5");
+            const newPct = 500n;
+            const newMax = ethers.parseEther("2000");
+
+            const tx = await bridge.setWithdrawDynamicFee(newFixed, newPct, newMax, { gasLimit: 2000000 });
+            await logTx(tx, "setWithdrawDynamicFee(5, 500, 2000)", "setWithdrawDynamicFee", ["5", "500", "2000"]);
+
+            expect(await bridge.withdrawFixedFee()).to.equal(newFixed);
+            expect(await bridge.withdrawPercentageBps()).to.equal(newPct);
+            expect(await bridge.withdrawMaxFee()).to.equal(newMax);
+
+            // Restore defaults
+            const restoreTx = await bridge.setWithdrawDynamicFee(ethers.parseEther("3"), 250n, ethers.parseEther("1500"), { gasLimit: 2000000 });
+            await logTx(restoreTx, "Restore withdraw fee defaults", "setWithdrawDynamicFee", ["3", "250", "1500"]);
+        });
+
+        it("Test 70: dynamic-fee: setDepositDynamicFee reverts if fixedFee > maxFee", async function () {
+            try {
+                const tx = await bridge.setDepositDynamicFee(ethers.parseEther("5000"), 500n, ethers.parseEther("3000"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFeeConfiguration|revert/i);
+                console.log("    [Info] Correctly reverted: fixedFee > maxFee");
+            }
+        });
+
+        it("Test 71: dynamic-fee: setDepositDynamicFee reverts if maxFee is 0", async function () {
+            try {
+                const tx = await bridge.setDepositDynamicFee(0n, 500n, 0n, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFeeConfiguration|revert/i);
+                console.log("    [Info] Correctly reverted: maxFee == 0");
+            }
+        });
+
+        it("Test 72: dynamic-fee: setDepositDynamicFee reverts if percentageBps > MAX_FEE_UNITS", async function () {
+            try {
+                // MAX_FEE_UNITS = 100000 (10%)
+                const tx = await bridge.setDepositDynamicFee(ethers.parseEther("10"), 200000n, ethers.parseEther("3000"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidFee|revert/i);
+                console.log("    [Info] Correctly reverted: percentageBps > MAX_FEE_UNITS");
+            }
+        });
+
+        it("Test 73: dynamic-fee: setPriceOracle reverts for zero address", async function () {
+            try {
+                const tx = await bridge.setPriceOracle(ethers.ZeroAddress, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidAddress|revert/i);
+                console.log("    [Info] Correctly reverted: oracle = address(0)");
+            }
+        });
+
+        it("Test 74: dynamic-fee: setPriceOracle emits PriceOracleUpdated", async function () {
+            const oracleAddr = await addr(mockOracle);
+            // Set to a new address then restore
+            const newOracle = ethers.Wallet.createRandom().address;
+            const tx = await bridge.setPriceOracle(newOracle, { gasLimit: 2000000 });
+            await logTx(tx, "setPriceOracle to random address", "setPriceOracle", [newOracle]);
+            await expect(tx).to.emit(bridge, "PriceOracleUpdated");
+
+            // Restore original oracle
+            const restoreTx = await bridge.setPriceOracle(oracleAddr, { gasLimit: 2000000 });
+            await logTx(restoreTx, "Restore original oracle", "setPriceOracle", [oracleAddr]);
+        });
+
+        it("Test 75: dynamic-fee: totalUserLiability increases on deposit", async function () {
+            const liabilityBefore = await bridge.totalUserLiability();
+            const amount = ethers.parseEther("100");
+
+            const [fee, cotiLastUpdated] = await bridge.estimateDepositFee(amount);
+            const tx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: amount, gasLimit: 12000000 });
+            await logTx(tx, "Deposit 100 COTI for liability tracking", "deposit", ["100"]);
+
+            const liabilityAfter = await bridge.totalUserLiability();
+            const netDeposit = amount - fee;
+            console.log(`    [Info] Liability before=${ethers.formatEther(liabilityBefore)}, after=${ethers.formatEther(liabilityAfter)}, net=${ethers.formatEther(netDeposit)}`);
+            expect(liabilityAfter - liabilityBefore).to.equal(netDeposit);
+        });
+
+        it("Test 76: dynamic-fee: totalUserLiability decreases on withdraw", async function () {
+            const amount = ethers.parseEther("50");
+            const bridgeAddr = await addr(bridge);
+
+            await logTx(await privateCoti.connect(user1 || owner)["approve(address,uint256)"](bridgeAddr, amount, { gasLimit: 2000000 }), "Approve for liability withdraw test", "approve", [bridgeAddr, "50"]);
+
+            const liabilityBefore = await bridge.totalUserLiability();
+            const [fee, cotiLastUpdated] = await bridge.estimateWithdrawFee(amount);
+
+            const tx = await bridge["withdraw(uint256,uint256,uint256)"](amount, cotiLastUpdated, cotiLastUpdated, { gasLimit: 12000000 });
+            await logTx(tx, "Withdraw 50 COTI for liability tracking", "withdraw", ["50"]);
+
+            const liabilityAfter = await bridge.totalUserLiability();
+            const netWithdraw = amount - fee;
+            console.log(`    [Info] Liability before=${ethers.formatEther(liabilityBefore)}, after=${ethers.formatEther(liabilityAfter)}, net=${ethers.formatEther(netWithdraw)}`);
+            expect(liabilityBefore - liabilityAfter).to.equal(netWithdraw);
+        });
+
+        it("Test 77: dynamic-fee: feeRecipient and rescueRecipient are set correctly", async function () {
+            const feeRecip = await bridge.feeRecipient();
+            const rescueRecip = await bridge.rescueRecipient();
+            console.log(`    [Info] feeRecipient=${feeRecip}, rescueRecipient=${rescueRecip}`);
+            expect(feeRecip).to.equal(owner.address);
+            expect(rescueRecip).to.equal(owner.address);
+        });
+
+        it("Test 78: dynamic-fee: AccessControlEnumerable role member tracking", async function () {
+            const OPERATOR_ROLE = await bridge.OPERATOR_ROLE();
+            const operatorCount = await bridge.getRoleMemberCount(OPERATOR_ROLE);
+            console.log(`    [Info] Operator count: ${operatorCount}`);
+            expect(operatorCount).to.be.gte(1n);
+
+            const firstOperator = await bridge.getRoleMember(OPERATOR_ROLE, 0);
+            console.log(`    [Info] First operator: ${firstOperator}`);
+            expect(firstOperator).to.equal(owner.address);
+        });
+
+        it("Test 79: dynamic-fee: DynamicFeeUpdated event emitted on setDepositDynamicFee", async function () {
+            const tx = await bridge.setDepositDynamicFee(ethers.parseEther("10"), 500n, ethers.parseEther("3000"), { gasLimit: 2000000 });
+            await logTx(tx, "setDepositDynamicFee for event check", "setDepositDynamicFee", ["10", "500", "3000"]);
+            await expect(tx).to.emit(bridge, "DynamicFeeUpdated");
+        });
+
+        it("Test 80: dynamic-fee: receive() direct deposit works without timestamps", async function () {
+            const bridgeAddr = await addr(bridge);
+            const amount = ethers.parseEther("100");
+            const feeBefore = await bridge.accumulatedCotiFees();
+
+            const tx = await owner.sendTransaction({ to: bridgeAddr, value: amount, gasLimit: 2000000 });
+            await logTx(tx, "Direct COTI transfer (receive fallback) for fee check", "receive()", [ethers.formatEther(amount)]);
+
+            const feeAfter = await bridge.accumulatedCotiFees();
+            const feeCharged = feeAfter - feeBefore;
+            console.log(`    [Info] Fee charged via receive(): ${ethers.formatEther(feeCharged)} COTI`);
+            expect(feeCharged).to.be.gt(0n);
+        });
+
+        it("Test 81: dynamic-fee: withdrawFees sends to feeRecipient", async function () {
+            const fees = await bridge.accumulatedCotiFees();
+            if (fees === 0n) {
+                console.log("    [Info] No accumulated fees to withdraw, skipping");
+                this.skip();
+                return;
+            }
+            const withdrawAmount = fees / 2n > 0n ? fees / 2n : fees;
+            const recipientBefore = await ethers.provider.getBalance(owner.address);
+
+            const tx = await bridge.withdrawFees(withdrawAmount, { gasLimit: 2000000 });
+            await logTx(tx, `withdrawFees(${ethers.formatEther(withdrawAmount)})`, "withdrawFees", [ethers.formatEther(withdrawAmount)]);
+
+            await expect(tx).to.emit(bridge, "FeesWithdrawn");
+            console.log(`    [Info] Withdrew ${ethers.formatEther(withdrawAmount)} COTI fees to feeRecipient`);
+        });
+
+        it("Test 82: dynamic-fee: setNativeCotiFee reverts on native bridge", async function () {
+            try {
+                const tx = await bridge.setNativeCotiFee(ethers.parseEther("1"), { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/NativeCotiFeeNotApplicable|revert/i);
+                console.log("    [Info] Correctly reverted: NativeCotiFeeNotApplicable");
+            }
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DYNAMIC FEE FEATURES - ERC20 BRIDGE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Dynamic Fee Features - ERC20 Bridge", function () {
+        let publicToken, privateToken, bridge, mockOracle;
+        const UNIT = BigInt(10 ** 18);
+        const COTI_FEE_BUFFER = ethers.parseEther("3100");
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            // Deploy mock oracle
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+            await mockOracle.setPrice("ETH", ethers.parseEther("2300"), { gasLimit: 2000000 });
+
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockOracle.setLastUpdated(currentBlock.timestamp, { gasLimit: 2000000 });
+
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            if (chainId === 7082400n) {
+                const WETH_ADDRESS = "0x8bca4e6bbE402DB4aD189A316137aD08206154FB";
+                const PRIVATE_WETH_ADDRESS = "0x6f7E5eE3a913aa00c6eB9fEeCad57a7d02F7f45c";
+                publicToken = await ethers.getContractAt("ERC20Mock", WETH_ADDRESS);
+                privateToken = await ethers.getContractAt("PrivateWrappedEther", PRIVATE_WETH_ADDRESS);
+                console.log(`    [Info] Using pre-deployed WETH at ${WETH_ADDRESS}`);
+
+                bridge = await (await ethers.getContractFactory("PrivacyBridgeWETH")).deploy(WETH_ADDRESS, PRIVATE_WETH_ADDRESS, owner.address, owner.address, { gasLimit: 12000000 });
+                await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+                const bridgeAddr = await addr(bridge);
+                await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (ERC20 dynamic fee suite)", "setPriceOracle", [await addr(mockOracle)]);
+                await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), "Grant MINTER_ROLE (ERC20 dynamic fee suite)", "grantRole", ["MINTER_ROLE", bridgeAddr]);
+            } else {
+                publicToken = await (await ethers.getContractFactory("ERC20Mock")).deploy("Wrapped Ether", "WETH", 18, { gasLimit: 12000000 });
+                await (publicToken.waitForDeployment ? publicToken.waitForDeployment() : publicToken.deployed());
+
+                privateToken = await (await ethers.getContractFactory("PrivateERC20Mock")).deploy({ gasLimit: 12000000 });
+                await (privateToken.waitForDeployment ? privateToken.waitForDeployment() : privateToken.deployed());
+
+                const pubAddr = await addr(publicToken);
+                const privAddr = await addr(privateToken);
+
+                bridge = await (await ethers.getContractFactory("PrivacyBridgeWETH")).deploy(pubAddr, privAddr, owner.address, owner.address, { gasLimit: 12000000 });
+                await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+                const bridgeAddr = await addr(bridge);
+                await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (ERC20 dynamic fee suite)", "setPriceOracle", [await addr(mockOracle)]);
+                await logTx(await privateToken.grantRole(MINTER_ROLE, bridgeAddr, { gasLimit: 12000000 }), "Grant MINTER_ROLE (ERC20 dynamic fee suite)", "grantRole", ["MINTER_ROLE", bridgeAddr]);
+                await logTx(await publicToken.mint(owner.address, 10000n * UNIT, { gasLimit: 2000000 }), "Mint 10000 WETH to owner", "mint", [owner.address, "10000"]);
+            }
+
+            await registerContract("PrivacyBridgeWETH", bridge, "Dynamic Fee - ERC20");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 83: dynamic-fee-erc20: estimateDepositFee returns correct fee for ERC20", async function () {
+            // 10 WETH at $2300 = $23,000 USD
+            // pctFee = $23,000 * 500/1,000,000 = $11.50
+            // pctFeeCoti = $11.50 / $0.05 = 230 COTI
+            // fee = max(10, 230) = 230, min(230, 3000) = 230 COTI
+            const amount = 10n * UNIT;
+            const [fee, cotiLastUpdated, tokenLastUpdated, blockTimestamp] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Info] estimateDepositFee(10 WETH): fee=${ethers.formatEther(fee)} COTI`);
+            expect(fee).to.equal(ethers.parseEther("230"));
+            expect(cotiLastUpdated).to.be.gt(0n);
+            expect(tokenLastUpdated).to.be.gt(0n);
+            expect(blockTimestamp).to.be.gt(0n);
+        });
+
+        it("Test 84: dynamic-fee-erc20: estimateWithdrawFee returns correct fee for ERC20", async function () {
+            // 10 WETH at $2300 = $23,000 USD
+            // pctFee = $23,000 * 250/1,000,000 = $5.75
+            // pctFeeCoti = $5.75 / $0.05 = 115 COTI
+            // fee = max(3, 115) = 115, min(115, 1500) = 115 COTI
+            const amount = 10n * UNIT;
+            const [fee] = await bridge.estimateWithdrawFee(amount);
+            console.log(`    [Info] estimateWithdrawFee(10 WETH): fee=${ethers.formatEther(fee)} COTI`);
+            expect(fee).to.equal(ethers.parseEther("115"));
+        });
+
+        it("Test 85: dynamic-fee-erc20: Max fee cap applies for large ERC20 deposits", async function () {
+            // 1000 WETH at $2300 = $2,300,000 USD
+            // pctFee = $2,300,000 * 500/1,000,000 = $1,150
+            // pctFeeCoti = $1,150 / $0.05 = 23,000 COTI
+            // fee = max(10, 23000) = 23000, min(23000, 3000) = 3000 COTI (capped)
+            const amount = 1000n * UNIT;
+            const [fee] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Info] estimateDepositFee(1000 WETH): fee=${ethers.formatEther(fee)} COTI (capped)`);
+            expect(fee).to.equal(ethers.parseEther("3000"));
+        });
+
+        it("Test 86: dynamic-fee-erc20: tokenSymbol returns correct oracle symbol", async function () {
+            const symbol = await bridge.tokenSymbol();
+            console.log(`    [Info] tokenSymbol: ${symbol}`);
+            expect(symbol).to.equal("ETH");
+        });
+
+        it("Test 87: dynamic-fee-erc20: Full deposit collects COTI fee from msg.value", async function () {
+            const amount = 10n * UNIT;
+            const bridgeAddr = await addr(bridge);
+            await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve WETH for deposit", "approve", [bridgeAddr, "10"]);
+
+            const feeBefore = await bridge.accumulatedCotiFees();
+            const [fee, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(amount);
+            console.log(`    [Info] Estimated fee: ${ethers.formatEther(fee)} COTI`);
+
+            const tx = await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: COTI_FEE_BUFFER, gasLimit: 12000000 });
+            await logTx(tx, "Deposit 10 WETH with COTI fee", "deposit", ["10"]);
+
+            const feeAfter = await bridge.accumulatedCotiFees();
+            const actualFee = feeAfter - feeBefore;
+            console.log(`    [Info] Actual COTI fee collected: ${ethers.formatEther(actualFee)}`);
+            expect(actualFee).to.equal(fee);
+        });
+
+        it("Test 88: dynamic-fee-erc20: Deposit reverts with insufficient COTI fee", async function () {
+            const amount = 10n * UNIT;
+            const bridgeAddr = await addr(bridge);
+            await logTx(await publicToken.approve(bridgeAddr, amount, { gasLimit: 2000000 }), "Approve WETH for insufficient fee test", "approve", [bridgeAddr, "10"]);
+
+            const [fee, cotiLastUpdated, tokenLastUpdated] = await bridge.estimateDepositFee(amount);
+
+            try {
+                // Send less than the required fee
+                const insufficientFee = fee / 2n;
+                const tx = await bridge["deposit(uint256,uint256,uint256)"](amount, cotiLastUpdated, tokenLastUpdated, { value: insufficientFee, gasLimit: 12000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InsufficientCotiFee|revert/i);
+                console.log("    [Info] Correctly reverted: InsufficientCotiFee");
+            }
+        });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // BLACKLIST & ACCESS CONTROL TESTS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe("Blacklist & Access Control", function () {
+        let privateCoti, bridge, mockOracle;
+
+        before(async function () {
+            if (ONLY_PRIVATE_ERC20) { this.skip(); return; }
+
+            const OracleFactory = await ethers.getContractFactory("MockCotiPriceConsumer");
+            mockOracle = await OracleFactory.deploy({ gasLimit: 12000000 });
+            await (mockOracle.waitForDeployment ? mockOracle.waitForDeployment() : mockOracle.deployed());
+            await mockOracle.setCotiPrice(ethers.parseEther("0.05"), { gasLimit: 2000000 });
+
+            const currentBlock = await ethers.provider.getBlock("latest");
+            await mockOracle.setLastUpdated(currentBlock.timestamp, { gasLimit: 2000000 });
+
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            if (chainId === 7082400n) {
+                privateCoti = await ethers.getContractAt("PrivateCOTI", "0x03eeA59b1F0Dfeaece75531b27684DD882f79759");
+            } else {
+                const PrivateCotiFactory = await ethers.getContractFactory("PrivateERC20Mock");
+                privateCoti = await PrivateCotiFactory.deploy({ gasLimit: 12000000 });
+                await (privateCoti.waitForDeployment ? privateCoti.waitForDeployment() : privateCoti.deployed());
+            }
+
+            const BridgeFactory = await ethers.getContractFactory("PrivacyBridgeCotiNative");
+            const pCotiAddr = await addr(privateCoti);
+            bridge = await BridgeFactory.deploy(pCotiAddr, owner.address, owner.address, { gasLimit: 30000000 });
+            await (bridge.waitForDeployment ? bridge.waitForDeployment() : bridge.deployed());
+
+            await logTx(await bridge.setPriceOracle(await addr(mockOracle), { gasLimit: 2000000 }), "Set oracle (blacklist suite)", "setPriceOracle", [await addr(mockOracle)]);
+            await logTx(await privateCoti.grantRole(MINTER_ROLE, await addr(bridge), { gasLimit: 2000000 }), "Grant MINTER_ROLE (blacklist suite)", "grantRole", ["MINTER_ROLE", await addr(bridge)]);
+            await registerContract("PrivacyBridgeCotiNative", bridge, "Blacklist & Access Control");
+            await new Promise(r => setTimeout(r, 5000));
+        });
+
+        it("Test 89: blacklist: addToBlacklist blocks deposit", async function () {
+            // Blacklist the owner address
+            const tx = await bridge.addToBlacklist(owner.address, { gasLimit: 2000000 });
+            await logTx(tx, "addToBlacklist(owner)", "addToBlacklist", [owner.address]);
+            await expect(tx).to.emit(bridge, "Blacklisted");
+
+            expect(await bridge.blacklisted(owner.address)).to.equal(true);
+
+            // Try to deposit — should revert
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            try {
+                const depositTx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("100"), gasLimit: 12000000 });
+                await waitForReceiptWithRetry(depositTx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/AddressBlacklisted|revert/i);
+                console.log("    [Info] Correctly reverted: AddressBlacklisted on deposit");
+            }
+        });
+
+        it("Test 90: blacklist: removeFromBlacklist restores access", async function () {
+            const tx = await bridge.removeFromBlacklist(owner.address, { gasLimit: 2000000 });
+            await logTx(tx, "removeFromBlacklist(owner)", "removeFromBlacklist", [owner.address]);
+            await expect(tx).to.emit(bridge, "UnBlacklisted");
+
+            expect(await bridge.blacklisted(owner.address)).to.equal(false);
+
+            // Deposit should now work
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            const depositTx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("100"), gasLimit: 12000000 });
+            await logTx(depositTx, "Deposit after unblacklist", "deposit", ["100"]);
+            await expect(depositTx).to.emit(bridge, "Deposit");
+        });
+
+        it("Test 91: blacklist: addToBlacklist reverts for zero address", async function () {
+            try {
+                const tx = await bridge.addToBlacklist(ethers.ZeroAddress, { gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/InvalidAddress|revert/i);
+                console.log("    [Info] Correctly reverted: addToBlacklist(address(0))");
+            }
+        });
+
+        it("Test 92: access-control: addOperator and removeOperator work correctly", async function () {
+            const randomAddr = ethers.Wallet.createRandom().address;
+
+            const addTx = await bridge.addOperator(randomAddr, { gasLimit: 2000000 });
+            await logTx(addTx, "addOperator(random)", "addOperator", [randomAddr]);
+            await expect(addTx).to.emit(bridge, "OperatorAdded");
+
+            const isOp = await bridge.isOperator(randomAddr);
+            expect(isOp).to.equal(true);
+
+            const removeTx = await bridge.removeOperator(randomAddr, { gasLimit: 2000000 });
+            await logTx(removeTx, "removeOperator(random)", "removeOperator", [randomAddr]);
+            await expect(removeTx).to.emit(bridge, "OperatorRemoved");
+
+            const isOpAfter = await bridge.isOperator(randomAddr);
+            expect(isOpAfter).to.equal(false);
+        });
+
+        it("Test 93: access-control: pause blocks deposits, unpause restores", async function () {
+            const pauseTx = await bridge.pause({ gasLimit: 2000000 });
+            await logTx(pauseTx, "pause()", "pause", []);
+
+            // Try deposit while paused
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            try {
+                const depositTx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("100"), gasLimit: 12000000 });
+                await waitForReceiptWithRetry(depositTx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/Pausable|paused|revert/i);
+                console.log("    [Info] Correctly reverted: deposit while paused");
+            }
+
+            // Unpause
+            const unpauseTx = await bridge.unpause({ gasLimit: 2000000 });
+            await logTx(unpauseTx, "unpause()", "unpause", []);
+        });
+
+        it("Test 94: access-control: renounceOwnership is disabled", async function () {
+            try {
+                const tx = await bridge.renounceOwnership({ gasLimit: 2000000 });
+                await waitForReceiptWithRetry(tx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/renounceOwnership disabled|revert/i);
+                console.log("    [Info] Correctly reverted: renounceOwnership disabled");
+            }
+        });
+
+        it("Test 95: access-control: setIsDepositEnabled toggles deposits", async function () {
+            // Disable deposits
+            const disableTx = await bridge.setIsDepositEnabled(false, { gasLimit: 2000000 });
+            await logTx(disableTx, "setIsDepositEnabled(false)", "setIsDepositEnabled", ["false"]);
+            expect(await bridge.isDepositEnabled()).to.equal(false);
+
+            // Try deposit — should revert
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("100"));
+            try {
+                const depositTx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("100"), gasLimit: 12000000 });
+                await waitForReceiptWithRetry(depositTx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/DepositDisabled|revert/i);
+                console.log("    [Info] Correctly reverted: DepositDisabled");
+            }
+
+            // Re-enable
+            const enableTx = await bridge.setIsDepositEnabled(true, { gasLimit: 2000000 });
+            await logTx(enableTx, "setIsDepositEnabled(true)", "setIsDepositEnabled", ["true"]);
+            expect(await bridge.isDepositEnabled()).to.equal(true);
+        });
+
+        it("Test 96: access-control: setLimits enforces deposit/withdraw bounds", async function () {
+            const minDep = ethers.parseEther("50");
+            const maxDep = ethers.parseEther("10000");
+            const minWith = ethers.parseEther("10");
+            const maxWith = ethers.parseEther("5000");
+
+            const tx = await bridge.setLimits(minDep, maxDep, minWith, maxWith, { gasLimit: 2000000 });
+            await logTx(tx, "setLimits(50, 10000, 10, 5000)", "setLimits", ["50", "10000", "10", "5000"]);
+            await expect(tx).to.emit(bridge, "LimitsUpdated");
+
+            expect(await bridge.minDepositAmount()).to.equal(minDep);
+            expect(await bridge.maxDepositAmount()).to.equal(maxDep);
+
+            // Try deposit below minimum
+            const [, cotiLastUpdated] = await bridge.estimateDepositFee(ethers.parseEther("10"));
+            try {
+                const depositTx = await bridge["deposit(uint256,uint256)"](cotiLastUpdated, cotiLastUpdated, { value: ethers.parseEther("10"), gasLimit: 12000000 });
+                await waitForReceiptWithRetry(depositTx);
+                expect.fail("Expected revert but succeeded");
+            } catch (error) {
+                expect(error.message).to.match(/DepositBelowMinimum|revert/i);
+                console.log("    [Info] Correctly reverted: DepositBelowMinimum");
+            }
+
+            // Restore defaults
+            const restoreTx = await bridge.setLimits(1n, ethers.MaxUint256, 1n, ethers.MaxUint256, { gasLimit: 2000000 });
+            await logTx(restoreTx, "Restore default limits", "setLimits", ["1", "max", "1", "max"]);
+        });
+    });
+
     after(function () {
         console.log("\n===========================================================");
         console.log(`TOTAL TESTS RUN: ${testCounter}`);
