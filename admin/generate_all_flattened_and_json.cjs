@@ -30,10 +30,11 @@ const CONTRACTS = [
 
 function flattenAndClean(solPath) {
     const tmpFile = path.resolve(__dirname, "temp_flat.sol");
+    const fullSolPath = `coti-contracts/${solPath}`;
     execSync(
-        `node ./node_modules/.bin/hardhat flatten ${solPath} > ${tmpFile}`,
+        `node ./node_modules/.bin/hardhat flatten ${fullSolPath} > ${tmpFile}`,
         {
-            cwd: path.resolve(__dirname, "../coti-contracts"),
+            cwd: ROOT,
             maxBuffer: 50 * 1024 * 1024,
             stdio: "inherit",
         }
