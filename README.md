@@ -135,12 +135,21 @@ git diff /deploy/privacy_bridge/config.ts
 
 ## 5. Verify contracts
 
+Because `npx hardhat flatten` outputs directly to the console (which can sometimes mix with environment variable logs and other terminal noise), we use a helper script to cleanly generate the JSON files.
 
 ```bash
 # Regenerate flattened files and verification JSONs for contract verification
+node generate-json-flattened.cjs
+# OR (if using the admin tools context):
 npx hardhat run admin/generate_all_flattened_and_json.cjs
 ```
-> ⚠️ Use flatened jsons to verify contracts on cotiscan.  API JSON upload, seems to be disabled so you need to verify and upload JSONs individually.  You can see full contract list  online at /backoffice URL
+
+1. The script creates verified Standard JSON configurations mapping to each contract inside the `flattened/` directory.
+2. Go to the blockchain explorer at [https://testnet.cotiscan.io/](https://testnet.cotiscan.io/).
+3. Search for the deployed contract's address and navigate to the **Contract** -> **Verify & Publish** tab.
+4. Select **Solidity (Standard-Json-Input)**.
+5. Upload the corresponding generated `.json` file from the `flattened/` directory (e.g., `flattened/PrivacyBridge.json`).
+6. Submit to verify the contract natively.
 
 
 ## 6. Test Contracts
