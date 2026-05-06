@@ -5,12 +5,12 @@ const { ethers } = require("hardhat");
 const hre = require("hardhat");
 
 /**
- * SimulateFee Tests
- * Tests the simulateFee() view function on PrivacyBridge contracts.
+ * ComputeFee Tests
+ * Tests the computeCotiFee() and computeErc20Fee() view functions on Privacy Bridge contracts.
  * Runs against COTI testnet using deployed bridges with live oracle prices.
  */
 
-describe("SimulateFee Tests", function () {
+describe("ComputeFee Tests", function () {
     this.timeout(600000); // 10 minutes
 
     before(function () {
@@ -32,7 +32,7 @@ describe("SimulateFee Tests", function () {
         const signers = await ethers.getSigners();
         owner = signers[0];
         console.log("\n===========================================================");
-        console.log("STARTING SIMULATE FEE TESTS");
+        console.log("STARTING COMPUTE FEE TESTS");
         console.log("Deployer:", owner.address);
         console.log("===========================================================\n");
 
@@ -83,114 +83,100 @@ describe("SimulateFee Tests", function () {
     });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // NATIVE BRIDGE — simulateFee with "COTI" symbol
+    // NATIVE BRIDGE — computeCotiFee
     // ─────────────────────────────────────────────────────────────────────────
 
-    it("simulateFee: native COTI — floor dominates for small amount", async function () {
+    it("computeCotiFee: floor dominates for small amount", async function () {
         // 100 COTI at $0.05 → pctFee = 0.05 COTI → fee = max(10, 0.05) = 10 COTI
-        const fee = await nativeBridge.simulateFee(
-            ethers.parseEther("100"),   // amount
+        const fee = await nativeBridge.computeCotiFee(
+            ethers.parseEther("100"),   // cotiAmount
             ethers.parseEther("10"),    // fixedFee
             500n,                       // percentageBps (0.05%)
-            ethers.parseEther("3000"),  // maxFee
-            "COTI",                     // tokenSymbol
-            18                          // tokenDecimals
+            ethers.parseEther("3000")   // maxFee
         );
-        console.log(`    [Info] simulateFee(100 COTI, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(100 COTI, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("10"));
     });
 
-    it("simulateFee: native COTI — percentage dominates for large amount", async function () {
+    it("computeCotiFee: percentage dominates for large amount", async function () {
         // 1,000,000 COTI at $0.05 → pctFee = 500 COTI → fee = max(10, 500) = 500 COTI
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("1000000"),
             ethers.parseEther("10"),
             500n,
-            ethers.parseEther("3000"),
-            "COTI",
-            18
+            ethers.parseEther("3000")
         );
-        console.log(`    [Info] simulateFee(1M COTI, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(1M COTI, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("500"));
     });
 
-    it("simulateFee: native COTI — max fee cap applies", async function () {
+    it("computeCotiFee: max fee cap applies", async function () {
         // 100,000,000 COTI at $0.05 → pctFee = 50,000 COTI → fee = min(50000, 3000) = 3000 COTI
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("100000000"),
             ethers.parseEther("10"),
             500n,
-            ethers.parseEther("3000"),
-            "COTI",
-            18
+            ethers.parseEther("3000")
         );
-        console.log(`    [Info] simulateFee(100M COTI, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(100M COTI, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("3000"));
     });
 
-    it("simulateFee: native COTI — custom high fixed fee", async function () {
+    it("computeCotiFee: custom high fixed fee", async function () {
         // fixedFee = 50 COTI, amount = 100 COTI → pctFee = 0.05 COTI → fee = max(50, 0.05) = 50
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("100"),
             ethers.parseEther("50"),    // high fixed fee
             500n,
-            ethers.parseEther("3000"),
-            "COTI",
-            18
+            ethers.parseEther("3000")
         );
-        console.log(`    [Info] simulateFee(100 COTI, fixedFee=50): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(100 COTI, fixedFee=50): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("50"));
     });
 
-    it("simulateFee: native COTI — custom low max fee", async function () {
+    it("computeCotiFee: custom low max fee", async function () {
         // maxFee = 100 COTI, amount = 1M COTI → pctFee = 500 COTI → fee = min(500, 100) = 100
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("1000000"),
             ethers.parseEther("10"),
             500n,
-            ethers.parseEther("100"),   // low max fee
-            "COTI",
-            18
+            ethers.parseEther("100")    // low max fee
         );
-        console.log(`    [Info] simulateFee(1M COTI, maxFee=100): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(1M COTI, maxFee=100): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("100"));
     });
 
-    it("simulateFee: native COTI — custom high percentage", async function () {
+    it("computeCotiFee: custom high percentage", async function () {
         // percentageBps = 10000 (1%), amount = 1000 COTI → pctFee = 10 COTI → fee = max(3, 10) = 10
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("1000"),
             ethers.parseEther("3"),
             10000n,                     // 1%
-            ethers.parseEther("1500"),
-            "COTI",
-            18
+            ethers.parseEther("1500")
         );
-        console.log(`    [Info] simulateFee(1000 COTI, pct=1%): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(1000 COTI, pct=1%): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("10"));
     });
 
-    it("simulateFee: native COTI — zero percentage means floor always wins", async function () {
+    it("computeCotiFee: zero percentage means floor always wins", async function () {
         // percentageBps = 0, amount = 1M COTI → pctFee = 0 → fee = max(10, 0) = 10
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("1000000"),
             ethers.parseEther("10"),
             0n,                         // 0%
-            ethers.parseEther("3000"),
-            "COTI",
-            18
+            ethers.parseEther("3000")
         );
-        console.log(`    [Info] simulateFee(1M COTI, pct=0%): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(1M COTI, pct=0%): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("10"));
     });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ERC20 BRIDGE — simulateFee with "ETH" symbol (18 decimals)
+    // ERC20 BRIDGE — computeErc20Fee with "ETH" symbol (18 decimals)
     // ─────────────────────────────────────────────────────────────────────────
 
-    it("simulateFee: WETH — percentage dominates (10 WETH)", async function () {
+    it("computeErc20Fee: WETH — percentage dominates (10 WETH)", async function () {
         // 10 WETH at $2300 = $23,000 → pctFee = $11.50 → 230 COTI → fee = max(10, 230) = 230
-        const fee = await wethBridge.simulateFee(
+        const fee = await wethBridge.computeErc20Fee(
             ethers.parseEther("10"),
             ethers.parseEther("10"),
             500n,
@@ -198,13 +184,13 @@ describe("SimulateFee Tests", function () {
             "ETH",
             18
         );
-        console.log(`    [Info] simulateFee(10 WETH, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeErc20Fee(10 WETH, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("230"));
     });
 
-    it("simulateFee: WETH — max fee cap (1000 WETH)", async function () {
+    it("computeErc20Fee: WETH — max fee cap (1000 WETH)", async function () {
         // 1000 WETH at $2300 = $2.3M → pctFee = $1150 → 23,000 COTI → fee = min(23000, 3000) = 3000
-        const fee = await wethBridge.simulateFee(
+        const fee = await wethBridge.computeErc20Fee(
             ethers.parseEther("1000"),
             ethers.parseEther("10"),
             500n,
@@ -212,13 +198,13 @@ describe("SimulateFee Tests", function () {
             "ETH",
             18
         );
-        console.log(`    [Info] simulateFee(1000 WETH, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeErc20Fee(1000 WETH, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("3000"));
     });
 
-    it("simulateFee: WETH — floor dominates for tiny amount (0.001 WETH)", async function () {
+    it("computeErc20Fee: WETH — floor dominates for tiny amount (0.001 WETH)", async function () {
         // 0.001 WETH at $2300 = $2.30 → pctFee = $0.00115 → 0.023 COTI → fee = max(10, 0.023) = 10
-        const fee = await wethBridge.simulateFee(
+        const fee = await wethBridge.computeErc20Fee(
             ethers.parseEther("0.001"),
             ethers.parseEther("10"),
             500n,
@@ -226,13 +212,13 @@ describe("SimulateFee Tests", function () {
             "ETH",
             18
         );
-        console.log(`    [Info] simulateFee(0.001 WETH, default params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeErc20Fee(0.001 WETH, default params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("10"));
     });
 
-    it("simulateFee: WETH — withdraw params (lower pct, lower cap)", async function () {
+    it("computeErc20Fee: WETH — withdraw params (lower pct, lower cap)", async function () {
         // 10 WETH at $2300 = $23,000 → pctFee(0.025%) = $5.75 → 115 COTI → fee = max(3, 115) = 115
-        const fee = await wethBridge.simulateFee(
+        const fee = await wethBridge.computeErc20Fee(
             ethers.parseEther("10"),
             ethers.parseEther("3"),     // withdraw fixed
             250n,                       // withdraw pct (0.025%)
@@ -240,29 +226,27 @@ describe("SimulateFee Tests", function () {
             "ETH",
             18
         );
-        console.log(`    [Info] simulateFee(10 WETH, withdraw params): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeErc20Fee(10 WETH, withdraw params): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("115"));
     });
 
-    it("simulateFee: matches estimateDepositFee on native bridge", async function () {
+    it("computeCotiFee: matches estimateDepositFee on native bridge", async function () {
         const amount = ethers.parseEther("5000");
         const [estimatedFee] = await nativeBridge.estimateDepositFee(amount);
-        const simulatedFee = await nativeBridge.simulateFee(
+        const simulatedFee = await nativeBridge.computeCotiFee(
             amount,
             ethers.parseEther("10"),
             500n,
-            ethers.parseEther("3000"),
-            "COTI",
-            18
+            ethers.parseEther("3000")
         );
-        console.log(`    [Info] estimateDepositFee: ${ethers.formatEther(estimatedFee)}, simulateFee: ${ethers.formatEther(simulatedFee)}`);
+        console.log(`    [Info] estimateDepositFee: ${ethers.formatEther(estimatedFee)}, computeCotiFee: ${ethers.formatEther(simulatedFee)}`);
         expect(simulatedFee).to.equal(estimatedFee);
     });
 
-    it("simulateFee: matches estimateDepositFee on ERC20 bridge", async function () {
+    it("computeErc20Fee: matches estimateDepositFee on ERC20 bridge", async function () {
         const amount = ethers.parseEther("10");
         const [estimatedFee] = await wethBridge.estimateDepositFee(amount);
-        const simulatedFee = await wethBridge.simulateFee(
+        const simulatedFee = await wethBridge.computeErc20Fee(
             amount,
             ethers.parseEther("10"),
             500n,
@@ -270,36 +254,32 @@ describe("SimulateFee Tests", function () {
             "ETH",
             18
         );
-        console.log(`    [Info] estimateDepositFee: ${ethers.formatEther(estimatedFee)}, simulateFee: ${ethers.formatEther(simulatedFee)}`);
+        console.log(`    [Info] estimateDepositFee: ${ethers.formatEther(estimatedFee)}, computeErc20Fee: ${ethers.formatEther(simulatedFee)}`);
         expect(simulatedFee).to.equal(estimatedFee);
     });
 
-    it("simulateFee: matches estimateWithdrawFee on native bridge", async function () {
+    it("computeCotiFee: matches estimateWithdrawFee on native bridge", async function () {
         const amount = ethers.parseEther("5000");
         const [estimatedFee] = await nativeBridge.estimateWithdrawFee(amount);
-        const simulatedFee = await nativeBridge.simulateFee(
+        const simulatedFee = await nativeBridge.computeCotiFee(
             amount,
             ethers.parseEther("3"),
             250n,
-            ethers.parseEther("1500"),
-            "COTI",
-            18
+            ethers.parseEther("1500")
         );
-        console.log(`    [Info] estimateWithdrawFee: ${ethers.formatEther(estimatedFee)}, simulateFee: ${ethers.formatEther(simulatedFee)}`);
+        console.log(`    [Info] estimateWithdrawFee: ${ethers.formatEther(estimatedFee)}, computeCotiFee: ${ethers.formatEther(simulatedFee)}`);
         expect(simulatedFee).to.equal(estimatedFee);
     });
 
-    it("simulateFee: fixedFee equals maxFee means flat fee always", async function () {
+    it("computeCotiFee: fixedFee equals maxFee means flat fee always", async function () {
         // fixedFee = maxFee = 25 COTI → fee is always 25 regardless of amount
-        const fee = await nativeBridge.simulateFee(
+        const fee = await nativeBridge.computeCotiFee(
             ethers.parseEther("999999"),
             ethers.parseEther("25"),
             500n,
-            ethers.parseEther("25"),    // maxFee = fixedFee
-            "COTI",
-            18
+            ethers.parseEther("25")     // maxFee = fixedFee
         );
-        console.log(`    [Info] simulateFee(flat fee=25): ${ethers.formatEther(fee)} COTI`);
+        console.log(`    [Info] computeCotiFee(flat fee=25): ${ethers.formatEther(fee)} COTI`);
         expect(fee).to.equal(ethers.parseEther("25"));
     });
 });
